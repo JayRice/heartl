@@ -20,7 +20,7 @@ const Header: React.FC<HeaderProps> = ({
         {showLogo ? (
           <div className="flex items-center space-x-2">
             <Heart className="h-8 w-8 fill-current" />
-            <span className="text-xl font-bold">tinder</span>
+            <span className="text-xl font-bold">Heartl</span>
           </div>
         ) : (
           <h1 className="text-xl font-bold">{title}</h1>

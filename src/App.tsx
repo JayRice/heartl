@@ -1,11 +1,18 @@
-import React from 'react';
+import React, {useState} from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Welcome from './pages/Welcome';
 import App from './pages/App';
 import { useAuth } from './hooks/useAuth';
 
+
 const AppRouter: React.FC = () => {
+  const userPrefersDark = localStorage.getItem('theme') === 'dark';
+  if (userPrefersDark) {
+    document.documentElement.classList.add('dark');
+  }
   const { user, loading } = useAuth();
+  const [isDarkMode, setIsDarkMode] = useState(userPrefersDark);
+
 
   if (loading) {
     return (

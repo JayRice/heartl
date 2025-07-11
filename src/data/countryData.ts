@@ -1,0 +1,38 @@
+export type countryCode  = {
+    name: string,
+    code: string,
+    iso: string
+}
+
+export const countryCodeList : countryCode[] = [
+    { name: "United States", code: "+1", iso: "US" },
+    { name: "Canada", code: "+1", iso: "CA" },
+    { name: "United Kingdom", code: "+44", iso: "GB" },
+    { name: "Australia", code: "+61", iso: "AU" },
+    { name: "Germany", code: "+49", iso: "DE" },
+    { name: "France", code: "+33", iso: "FR" },
+    { name: "India", code: "+91", iso: "IN" },
+    { name: "Japan", code: "+81", iso: "JP" },
+    { name: "China", code: "+86", iso: "CN" },
+    { name: "South Korea", code: "+82", iso: "KR" },
+    { name: "Brazil", code: "+55", iso: "BR" },
+    { name: "Mexico", code: "+52", iso: "MX" },
+    { name: "Russia", code: "+7", iso: "RU" },
+    { name: "South Africa", code: "+27", iso: "ZA" },
+    { name: "Nigeria", code: "+234", iso: "NG" },
+    { name: "Egypt", code: "+20", iso: "EG" },
+    { name: "Argentina", code: "+54", iso: "AR" },
+    { name: "Spain", code: "+34", iso: "ES" },
+    { name: "Italy", code: "+39", iso: "IT" },
+    { name: "Sweden", code: "+46", iso: "SE" },
+    { name: "Norway", code: "+47", iso: "NO" },
+    { name: "Finland", code: "+358", iso: "FI" },
+    { name: "Netherlands", code: "+31", iso: "NL" },
+    { name: "Belgium", code: "+32", iso: "BE" },
+    { name: "Switzerland", code: "+41", iso: "CH" },
+    { name: "Poland", code: "+48", iso: "PL" },
+    { name: "Turkey", code: "+90", iso: "TR" },
+    { name: "Saudi Arabia", code: "+966", iso: "SA" },
+    { name: "United Arab Emirates", code: "+971", iso: "AE" },
+    { name: "Israel", code: "+972", iso: "IL" },
+];
