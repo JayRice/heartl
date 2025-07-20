@@ -6,7 +6,7 @@ export default {
   theme: {
     extend: {
       colors: {
-        primary: 'rgb(31 41 55)',
+        primary: 'rgb(17, 20, 25)',
         secondary: 'rgb(3 7 18)',
         complementary: 'rgb(75 85 99)',
         // equivalent to Tailwind's gray-800

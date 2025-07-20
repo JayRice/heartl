@@ -44,8 +44,9 @@ const SignInPhoneMode = () => {
             <div className={"flex  flex-row gap-2 h-16 flex-none "}>
                 <div className={"flex flex-col basis-1/4 w-[25%] h-full flex-none "}>
                     <label>Country</label>
-                    <div className={"p-2 h-full  bg-gray-950 hover:bg-gray-800 transition-colors border-sm cursor-pointer border-2 border-gray-700"}>
-                            <div onClick={() => setShowCountryCodes((prev) => !prev)}
+                    <div  onClick={() => setShowCountryCodes((prev) => !prev)} 
+                        className={"p-2 h-full  bg-gray-950 hover:bg-gray-800 transition-colors border-sm cursor-pointer border-2 border-gray-700"}>
+                            <div
                                  className={" h-10 box-border flex flex-row gap-2 justify-center text-sm items-center"}>
                                 <p className={"overflow-hidden"}>{countryCode.iso}</p>
                                 <p>{countryCode.code}</p>

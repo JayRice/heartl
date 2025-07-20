@@ -1,11 +1,16 @@
 
 import {create} from "zustand";
 
+//import { User } from 'firebase/auth';
+import { User } from "../src/data/interfaces"
+
 
 
 type storeType = {
     isDark: boolean;
     setIsDark: () => void;
+    user: User,
+    setUser: (user: User) => void;
 }
 
 export const store = create<storeType>((set) => ({
@@ -23,5 +28,9 @@ export const store = create<storeType>((set) => ({
      }
 
      return {isDark: newDark};
+    }),
+    user: null,
+    setUser: (user: User) => set(() => {
+        return {user: user}
     })
 }))

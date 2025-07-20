@@ -49,7 +49,10 @@ export default function TopNav({onAuth} : {onAuth: (mode : 'login' | 'signup') =
                 <div className={"fixed w-screen h-[100vh] text-white  bg-gray-800 z-50 top slide-in-right "}>
 
 
-                    <Logo classNameParent={"absolute"} classNameHeart={"text-red-600"}  />
+                    <div className={"absolute m-8"}>
+                        <Logo classNameParent={"absolute"} classNameHeart={"text-red-600"}  />
+
+                    </div>
                     <X onClick={() => {
                         setShowMobileMenu(false)
                     }}
@@ -160,7 +163,7 @@ export default function TopNav({onAuth} : {onAuth: (mode : 'login' | 'signup') =
 
 
             <div className={"flex flex-row gap-2 items-center"}>
-                <Logo  />
+                <Logo classNameHeart={"text-white ml-4"}  />
                 <div className={"hidden lg:flex text-white  justify-center items-center"}>
 
 

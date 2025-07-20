@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { Heart } from 'lucide-react';
 import AuthForm from '../components/Auth/AuthForm';
 import { useAuth } from '../hooks/useAuth';
-import TopNav from '../components/Layout/TopNav';
+import TopNav from '../components/Layout/TopNav'
+import AutoSlider from "../components/Elements/AutoSlider.tsx"
 
 import QuoteCard from "../components/Elements/QuoteCard.tsx"
 
@@ -116,11 +117,59 @@ const Welcome: React.FC = () => {
 
 
         </div>
-        <div ref={scrollContainerRef} className={"h-screen bg-primary "}>
-          <QuoteCard title={"Amy and Eliot"} description={"I was feeling lonely back in my hometown because most of my friends had started romantic relationships while I was abroad. We both decided to download Tinder and see what happened. \n" +
-              "\n" +
-              "Without the app we may have never met and embarked on this wild, wonderful journey. Thank you for bringing us and so many other couples together around the world. I will forever be grateful."}/>
+
+        <div>
+
         </div>
+        <div className={"w-screen h-screen bg-primary"}>
+          <div className={"h-screen w-full  mx-auto "}>
+            <AutoSlider>
+              <QuoteCard title={"Maya and Josh"} description={
+                  "We were both feeling disconnected and unsure about online dating, but Heartl felt different from the start. \n" +
+                  "\n" +
+                  "One swipe turned into hours of talking. That first match led to coffee, then adventures, and now a shared life. I still can’t believe how natural it all felt. Thank you, Heartl."
+              } />
+              <QuoteCard title={"Sara and Luca"} description={
+                  "I had just moved to a new city and was feeling pretty isolated. A friend convinced me to try Heartl and within days, I met Luca. \n" +
+                  "\n" +
+                  "It felt like something clicked instantly. If not for this app, I would’ve missed out on the most meaningful connection I’ve ever had."
+              } />
+              <QuoteCard title={"Nina and Elijah"} description={
+                  "We downloaded Heartl just to see what was out there — no expectations. \n" +
+                  "\n" +
+                  "What we found was something neither of us could’ve planned. Our first date turned into hours, then days, then months. All thanks to one swipe that changed everything."
+              } />
+              <QuoteCard title={"Jasmine and Carlos"} description={
+                  "After a string of disappointing dates, I was ready to give up. But Heartl gave me a second chance at love. \n" +
+                  "\n" +
+                  "Carlos and I matched instantly, and the rest felt effortless. It’s wild to think we almost never met — Heartl made it possible."
+              } />
+              <QuoteCard title={"Leah and Ryan"} description={
+                  "We both had profiles on Heartl for months before we actually matched. \n" +
+                  "\n" +
+                  "Turns out timing really is everything. From our first message, we felt like we’d known each other forever. We owe it all to that one connection through Heartl."
+              } />
+              <QuoteCard title={"Olivia and Theo"} description={
+                  "Neither of us were looking for anything serious, but Heartl brought us together at just the right time. \n" +
+                  "\n" +
+                  "What started as casual messages turned into late-night calls and weekend getaways. We never expected this, but we’re so glad it happened."
+              } />
+              <QuoteCard title={"Emma and Kai"} description={
+                  "Heartl helped me meet someone who saw me for exactly who I am. \n" +
+                  "\n" +
+                  "Kai and I connected over music and memes, and that turned into something so real. I’ll always be grateful for the app that made our story possible."
+              } />
+              <QuoteCard title={"Talia and Micah"} description={
+                  "We were both new in town and decided to give Heartl a shot. \n" +
+                  "\n" +
+                  "From our first chat, we just clicked. No awkward pauses, no pressure — just honesty and connection. We’ve been together ever since. Thank you, Heartl."
+              } />
+
+            </AutoSlider>
+          </div>
+        </div>
+
+
       </div>
   );
 };

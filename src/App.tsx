@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import Welcome from './pages/Welcome';
 import App from './pages/App';
 import { useAuth } from './hooks/useAuth';
+import Onboarding from "./pages/Onboarding.tsx";
 
 
 const AppRouter: React.FC = () => {
@@ -29,6 +30,10 @@ const AppRouter: React.FC = () => {
           path="/" 
           element={user ? <Navigate to="/app" /> : <Welcome />} 
         />
+        <Route
+        path="/app/onboarding"
+        element={<Onboarding />}
+        ></Route>
         <Route 
           path="/app"
           element={<App /> }
