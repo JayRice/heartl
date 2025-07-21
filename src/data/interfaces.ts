@@ -4,14 +4,13 @@ export type Interest = "harry-potter" | "rock-music" | "travel" | "fitness" | "a
 
 
 export interface User {
-    id: string,
     name: string,
     email: string,
     phone: string,
     birthday: [string ,string, string],
-    gender: "male" | "female" | "non-binary",
-    interested_in: "men" | "women" | "everyone",
-    intent: "long-term" | "long-term-open-short" | "short-term-open-long" | "short-term" | "friends" | "figuring-out"
+    gender: "male" | "female" | "non-binary" | null,
+    interested_in: "men" | "women" | "everyone" | null,
+    intent: "long-term" | "long-term-open-short" | "short-term-open-long" | "short-term" | "friends" | "figuring-out" | null
     interests?: Interest[],
     sexual_orientation?: "straight" | "gay" | "lesbian" | "bisexual" | "asexual"
 }

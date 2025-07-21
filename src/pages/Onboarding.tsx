@@ -1,9 +1,8 @@
 import {Pencil, Plus, ChevronRight} from "lucide-react"
-import {useState} from "react";
-import {User} from "../data/interfaces.ts"
-type Gender = User["gender"];
-type Intent = User["intent"];
-type Interested = User["interests"];
+import {useNavigate} from "react-router-dom";
+import {useEffect, useState} from "react";
+import { User} from "../data/interfaces.ts"
+
 
 import Button from "../components/Elements/Button.tsx"
 import Logo from "../components/Elements/Logo.tsx"
@@ -13,29 +12,66 @@ import GenderModal from "../components/Modals/GenderModal.tsx";
 import WelcomeModal from "../components/Modals/WelcomeModal.tsx";
 import IntentModal from "../components/Modals/IntentModal.tsx";
 import InterestsModal from "../components/Modals/InterestsModal.tsx";
-export default function Onboarding() {
+import PhotoCards from "../components/Elements/PhotoCards.tsx";
+import ImageEditModal from "../components/Modals/ImageEditModal.tsx"
+
+import {verify_user} from "../server/auth.tsx"
+
+interface Props {
+    email: string,
+    phone: string,
+}
+export default function Onboarding({email, phone}: Props) {
+
+    const navigate = useNavigate();
+
+    const [User, setUser] = useState<User>({
+        email: email,
+        phone: phone,
+        name: "",
+        birthday: ["", "", ""],
+        gender: null,
+        interested_in: null,
+        intent: null
+    } as User);
+
+    const [images, setImages] = useState<(File | null)[]>([null, null, null, null, null, null]);
+    const [currentImage, setCurrentImage] = useState<File | null>(null);
+    const [currentImageIndex, setCurrentImageIndex] = useState<number | null>(null);
 
 
-    const [User, setUser] = useState<User | null>(null);
 
-    const [firstName, setFirstName] = useState("");
-    const [email, setEmail] = useState("");
-    const [date, setDate] = useState<[string ,string, string]>(["","",""]);
-    const [gender, setGender] = useState<Gender | null>(null);
-    const [interested_in, setInterested_in] = useState<Interested | null>(null);
-    const [intent, setIntent] = useState<Intent | null>(null);
-    const [interests, setInterests] = useState<Interested | null>(null);
+    const [modalOpen, setModalOpen] = useState<null | "gender" | "welcome" | "intent" | "interests" | "image-edit">("welcome");
 
 
 
-    const [modalOpen, setModalOpen] = useState<null | "gender" | "welcome" | "intent" | "interests">("welcome");
+    const valid_user_setup = (): boolean => {
+        console.log(User)
+        return (
+            !!User.name &&
+            !!User.email &&
+            User.birthday.length === 3 &&
+            User.birthday.every((part) => part.trim() !== "") &&
+            !!User.gender &&
+            !!User.intent &&
+            !!User.interested_in &&
+            images.filter((img) => img !== null).length >= 2
+        );
+    }
+    useEffect(() => {
+        console.log("IMAGES DETECTED CHANGE")
+        setCurrentImage(null)
+        setCurrentImageIndex(null)
 
-    const genderName = gender == "male" ? "Man": gender == "female" ? "Woman": "Non-Binary";
+        console.log(images)
+    }, [images]);
+
+    const genderName = User?.gender == "male" ? "Man": User?.gender == "female" ? "Woman": "Non-Binary";
     return (
 
         <div className={"   "}>
             {modalOpen==="gender" && <GenderModal onSave={(gender) => {
-                setGender(gender)
+                setUser({...User, gender: gender})
             }}
                 onClose={() => setModalOpen(null)} />
             }
@@ -45,20 +81,39 @@ export default function Onboarding() {
             }
             {modalOpen==="intent" && <IntentModal onSave={(intent) => {
 
-                setIntent(intent)
+                setUser({...User, intent: intent })
+
             }} onClose={() => {
                 setModalOpen(null)
             }}/>
             }
             {modalOpen==="interests" && <InterestsModal onSave={(interests) => {
-                setInterests(interests)
+                setUser({...User, interests: interests})
+
             }} onClose={() => {
                 setModalOpen(null)
             }}/>
             }
 
+            {(modalOpen=="image-edit" && currentImage && (currentImageIndex) !== null) && <ImageEditModal image={currentImage} onClose={() => {
+                setModalOpen(null)
+            }
+            } onSave={(edited_image) => {
 
-            <div className={"fixed w-full h-20 bg-primary border-b-[1px] border-complementary"}>
+                setImages((prev) => {
+                    if (prev.length > currentImageIndex) {
+                        const newImages = [...prev];
+                        newImages[currentImageIndex] = edited_image;
+                        return newImages;
+                    }
+                    return prev;
+                })
+
+            }
+            } />}
+
+
+            <div className={"fixed w-full h-20 bg-primary border-b-[1px] border-complementary z-40"}>
                 <Logo classNameParent={"absolute m-4"} classNameHeart={"text-red-600"}></Logo>
 
             </div>
@@ -74,92 +129,128 @@ export default function Onboarding() {
                     <h1 className={"text-3xl text-white font-bold text-center mb-12"}> Create Account</h1>
 
                     <div className={"max-w-4xl w-full mx-auto"}>
-                        <div className={"flex flex-row justify-center  gap-8  text-white"}>
+                        <div className={"flex  justify-center w-full flex-col p-4 md:flex-row md:p-0  gap-8  text-white"}>
 
 
-                            <div className={"w-full h-full space-y-4"}>
+                            <div className={"w-full h-full space-y-4 flex flex-col justify-center text-center gap-4 md:block md:text-left "}>
 
-                                <Input name={"First Name"} placeholder={"ex. John"} input={firstName} setInput={setFirstName}  />
+                                <Input name={"First Name"} placeholder={"ex. John"} input={User.name} setInput={(input) => setUser({...User, name: input})}  />
 
-                                <Input name={"Email"} type={"email"} placeholder={"example@example.com"} input={email} setInput={setEmail} className={"mt-4"} />
+                                <Input name={"Email"} type={"email"} placeholder={"example@example.com"} input={User.email} setInput={(input) => setUser({...User, email: input})} className={"mt-4"} />
 
 
-                                <p className={"text-md text-white font-bold"}>Birthday:</p>
+                                <div className={"space-y-2"}>
+                                    <p className={"text-md text-white font-bold w-full"}>Birthday:</p>
 
-                                <DateInput date={date} setDate={setDate}/>
+                                    <DateInput date={User.birthday} setDate={(date) => setUser({...User, birthday: date})} />
 
-                                <p className={"text-md text-white font-bold"}>Gender:</p>
+                                </div>
 
-                                <Button onClick={() => {
-                                    setModalOpen("gender")
-                                }} className={"inline-block "}>
-                                    <div className={"flex flex-row gap-2 items-center"}>
-                                        {gender ? <Pencil className={"w-4 h-4 text-white"}/> :  <Plus className={"w-4 h-4 text-white"}/>}
+                                <div className={"space-y-2 "}>
+                                    <p className={"text-md text-white font-bold"}>Gender:</p>
 
-                                        <p className={"text-sm"}> {gender === null ? "Add":"Edit"} Gender</p>
-                                        {gender !== null && (
-                                            <div className={"flex flex-row gap-2 items-center"}>
-                                                <ChevronRight className={"w-4 h-4 text-white"}></ChevronRight>
-                                                <p>{genderName}</p>
-                                            </div>
-                                        )}
+                                    <Button onClick={() => {
+                                        setModalOpen("gender")
+                                    }} className={"inline-block "}>
+                                        <div className={"flex flex-row gap-2 items-center"}>
+                                            {User.gender ? <Pencil className={"w-4 h-4 text-white"}/> :  <Plus className={"w-4 h-4 text-white"}/>}
 
-                                    </div>
-                                </Button>
+                                            <p className={"text-sm"}> {User.gender === null ? "Add":"Edit"} Gender</p>
+                                            {User.gender !== null && (
+                                                <div className={"flex flex-row gap-2 items-center"}>
+                                                    <ChevronRight className={"w-4 h-4 text-white"}></ChevronRight>
+                                                    <p>{genderName}</p>
+                                                </div>
+                                            )}
 
-                                <p className={"text-md text-white font-bold"}>Interested In:</p>
-                                <div className={"w-full h-full flex flex-row gap-2 items-center justify-center"}>
-
-                                    <Button
-                                        className={"w-full h-full text-center"}
-                                        isSelected={interested_in == "men"}
-                                        onClick={() => {
-                                            setInterested_in("men")
-                                        }}>
-                                        <p className={"text-lg font-bold text-white"}>Men</p>
-                                    </Button>
-                                    <Button
-                                        className={"w-full h-full text-center"}
-                                        isSelected={interested_in === ""}
-
-                                        onClick={() => {
-                                            setInterested_in("women")
-                                        }}>
-                                        <p className={"text-lg font-bold text-white"}>Women</p>
-
-                                    </Button>
-                                    <Button
-                                        className={"w-full h-full text-center"}
-                                        isSelected={interested_in == "everyone"}
-
-                                        onClick={() => {
-                                            setInterested_in("everyone")
-                                        }}>
-                                        <p className={"text-lg font-bold text-white"}>Everyone</p>
+                                        </div>
                                     </Button>
                                 </div>
 
-                                <p className={"text-md text-white font-bold"}>Looking For</p>
-                                <Button onClick={() => {
-                                    setModalOpen("intent")
-                                }} className={"inline-block "}>
-                                    <div className={"flex flex-row gap-2 items-center"}>
-                                        {intent ? <Pencil className={"w-4 h-4 text-white"}/> :  <Plus className={"w-4 h-4 text-white"}/>}
 
-                                        <p className={"text-sm"}> {intent === null ? "Add":"Edit"} Relationship Intent</p>
+                                <div className={"space-y-2"}>
+                                    <p className={"text-md text-white font-bold"}>Interested In:</p>
+                                    <div className={"w-full h-full flex flex-row gap-2 items-center justify-center"}>
 
+                                        <Button
+                                            className={"w-full h-full text-center"}
+                                            isSelected={User.interested_in == "men"}
+                                            onClick={() => {
+                                                setUser({...User, interested_in: "men"})
+                                            }}>
+                                            <p className={"text-lg font-bold text-white"}>Men</p>
+                                        </Button>
+                                        <Button
+                                            className={"w-full h-full text-center"}
+                                            isSelected={User.interested_in === "women"}
 
+                                            onClick={() => {
+                                                setUser({...User, interested_in: "women"})
+                                            }}>
+                                            <p className={"text-lg font-bold text-white"}>Women</p>
+
+                                        </Button>
+                                        <Button
+                                            className={"w-full h-full text-center"}
+                                            isSelected={User.interested_in == "everyone"}
+
+                                            onClick={() => {
+                                                setUser({...User, interested_in: "everyone"})
+                                            }}>
+                                            <p className={"text-lg font-bold text-white"}>Everyone</p>
+                                        </Button>
                                     </div>
-                                </Button>
+                                </div>
 
 
+                                <div className={"space-y-2"}>
+                                    <p className={"text-md text-white font-bold"}>Looking For</p>
+                                    <Button onClick={() => {
+                                        setModalOpen("intent")
+                                    }} className={"inline-block "}>
+                                        <div className={"flex flex-row gap-2 items-center"}>
+                                            {User.intent ? <Pencil className={"w-4 h-4 text-white"}/> :  <Plus className={"w-4 h-4 text-white"}/>}
+
+                                            <p className={"text-sm"}> {User.intent === null ? "Add":"Edit"} Relationship Intent</p>
+
+
+                                        </div>
+                                    </Button>
+                                </div>
 
 
 
                             </div>
 
-                            <div className={"w-full h-full"}>
-                                Two
+                            <div className={"w-full h-full px-8"}>
+                                <p className={"text-md text-white font-bold"}>Profile Photos</p>
+
+                                <div className={"mt-4 z-0"}>
+                                    <PhotoCards images={images}
+                                                onDelete={(index) => {
+                                                    console.log("DELETING IN ONBOARING")
+                                                    setImages((prev) => {
+                                                        console.log("INDEX in onboarding:", index)
+                                                        if ( index < 0 || index >= prev.length) return prev;
+
+                                                        const newImages = [...prev]
+                                                        newImages[index] = null;
+                                                        return newImages;
+                                                    })
+                                                }}
+
+                                                onUpload={(file, index) => {
+
+
+                                        setCurrentImageIndex(index);
+                                        setCurrentImage(file);
+                                        console.log("Set modal open!")
+                                        setModalOpen("image-edit");
+                                    }}></PhotoCards>
+                                </div>
+                                <div className={"mt-4 text-center"}>
+                                    <p className={"text-md text-gray-400"}>Upload 2 photos to start. Add 4 or more to make your profile stand out.</p>
+                                </div>
                             </div>
                         </div>
 
@@ -169,19 +260,30 @@ export default function Onboarding() {
                         </div>
                         {/* Optional */}
                         <div className={"flex flex-row justify-center  gap-8  text-white"}>
-                            <div className={"w-full h-full space-y-4"}>
+                            <div className={"flex justify-center w-full flex-col p-4 text-center space-y-2 md:block  md:text-left md:p-0"}>
                                 <p className={"text-md text-white font-bold"}>Interests</p>
                                 <Button onClick={() => {
                                     setModalOpen("interests")
-                                }} className={"inline-block "}>
-                                    <div className={"flex flex-row gap-2 items-center"}>
-                                        {interests ? <Pencil className={"w-4 h-4 text-white"}/> :  <Plus className={"w-4 h-4 text-white"}/>}
+                                }} className={"h-fit w-fit mx-auto md:mx-0 "}>
+                                    <div className={"flex flex-row gap-2 items-center "}>
+                                        {User.interests ? <Pencil className={"w-4 h-4 text-white"}/> :  <Plus className={"w-4 h-4 text-white"}/>}
 
-                                        <p className={"text-sm"}> {interests === null ? "Add":"Edit"} Interests</p>
+                                        <p className={"text-sm"}> {User.interests === null ? "Add":"Edit"} Interests</p>
+
 
 
                                     </div>
                                 </Button>
+                                <div className={"w-3/4 mx-auto md:w-64 md:mx-0"}>
+                                    {User.interests && (
+                                        User.interests.map((interest) => (
+                                            <p className={"inline-block w-fit text-white px-2 py-1 m-1 border-2 rounded-3xl border-red-600 "}>
+                                                {interest}
+                                            </p>
+                                        ))
+                                    )}
+                                </div>
+
 
                             </div>
                         </div>
@@ -193,9 +295,26 @@ export default function Onboarding() {
 
 
                 <div className={"w-64 mx-auto"}>
-                    <Button className={"mt-32"} onClick={() => {}}
+                    <Button className={"mt-32 mb-16"}
+                            onClick={async () => {
+                                if(valid_user_setup()){
 
-                            disabled={true} name={"Continue"}></Button>
+                                    // Backend
+                                    const verified_response : boolean = await verify_user(User);
+
+                                    if(verified_response){
+                                        navigate("/app")
+                                    }
+
+
+
+                                }
+                            }}
+
+
+                            disabled={!valid_user_setup()} >
+                        <p className={"w-full text-center px-2 py-1"}> Continue </p>
+                    </Button>
                 </div>
 
             </div>
