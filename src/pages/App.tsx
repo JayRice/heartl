@@ -68,27 +68,13 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-900 flex flex-col overflow-x-hidden">
-      <Header
-        showLogo={activeTab === 'discover'}
-        title={
-          activeTab === 'matches' ? 'Matches' :
-          activeTab === 'messages' ? (selectedChat ? selectedChat.match.user.name : 'Messages') :
-          activeTab === 'profile' ? 'Profile' : undefined
-        }
-        rightIcon={
-          activeTab === 'discover' ? <Settings className="h-6 w-6" /> :
-          activeTab === 'messages' && selectedChat ? (
-            <button onClick={() => setSelectedChat(null)}>
-              ← Back
-            </button>
-          ) : undefined
-        }
-      />
+
 
       {activeTab === 'discover' && <DiscoverTab currentUserIndex={currentUserIndex} handleSwipe={handleSwipe} />}
       {activeTab === 'matches' && <MatchesTab matches={matches}  chats={chats} setChats={setChats} setActiveTab={setActiveTab} />}
       {activeTab === 'messages' && <MessagesTab selectedChat={selectedChat} chats={chats} setSelectedChat={setSelectedChat} handleSendMessage={handleSendMessage} />}
       {activeTab === 'profile' && <ProfileTab  handleLogout={handleLogout}/>}
+
 
       <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />
 

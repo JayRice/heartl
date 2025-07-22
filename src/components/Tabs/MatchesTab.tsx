@@ -10,8 +10,8 @@ interface Props {
 }
 export default function MatchesTab({matches, chats, setChats, setActiveTab}: Props) {
     return (
-        <div className="flex-1 p-4 max-w-md mx-auto w-full">
-            <div className="mb-6">
+        <div className="  ">
+            <div className="">
                 <h2 className="text-xl font-bold text-white mb-4">New Matches</h2>
                 <div className="flex space-x-4 overflow-x-auto pb-2">
                     {matches.map((match) => (

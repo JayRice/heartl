@@ -8,7 +8,7 @@ export const useSwipe = (onSwipe: (direction: 'left' | 'right' | 'up') => void) 
     y: 0,
     rotate: 0,
     scale: 1,
-    config: { friction: 50, tension: 500 }
+    config: { friction: 50 ,tension: 500 }
   }));
 
   const bind = useDrag(({ args: [index], down, movement: [mx, my], direction, velocity }) => {
