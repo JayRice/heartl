@@ -50,7 +50,7 @@ export default function TopNav({onAuth} : {onAuth: (mode : 'login' | 'signup') =
 
 
                     <div className={"absolute m-8"}>
-                        <Logo classNameParent={"absolute"} classNameHeart={"text-red-600"}  />
+                        <Logo classNameParent={"absolute text-white"} classNameHeart={"text-red-600"}  />
 
                     </div>
                     <X onClick={() => {

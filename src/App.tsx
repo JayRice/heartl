@@ -15,6 +15,7 @@ const AppRouter: React.FC = () => {
   const [isDarkMode, setIsDarkMode] = useState(userPrefersDark);
 
 
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-900 flex items-center justify-center">

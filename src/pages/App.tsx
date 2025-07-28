@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Settings } from 'lucide-react';
 import Header from '../components/Layout/Header';
-import BottomNav from '../components/Layout/BottomNav';
+import BottomNav from '../../src/components/Elements/app/BottomNav.tsx';
 
 
 import MatchNotification from '../components/Notifications/MatchNotification';
@@ -29,23 +29,13 @@ const App: React.FC = () => {
   const { logout } = useAuth();
   const navigate = useNavigate();
 
+
   const handleSwipe = (direction: 'left' | 'right' | 'up') => {
     const currentUser = mockUsers[currentUserIndex];
 
     if (direction === 'right' || direction === 'up') {
-      // Simulate match logic
-      const isMatch = Math.random() > 0.5;
-      if (isMatch) {
-        setShowMatchNotification(currentUser);
-        // Add to matches
-        const newMatch: Match = {
-          id: Date.now().toString(),
-          user: currentUser,
-          timestamp: new Date(),
-          isNew: true
-        };
-        setMatches(prev => [newMatch, ...prev]);
-      }
+
+
     }
 
     setCurrentUserIndex(prev => (prev + 1) % mockUsers.length);
@@ -76,7 +66,9 @@ const App: React.FC = () => {
       {activeTab === 'profile' && <ProfileTab  handleLogout={handleLogout}/>}
 
 
-      <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />
+      <div className=" lg:hidden">
+        <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />
+      </div>
 
       {showMatchNotification && (
         <MatchNotification

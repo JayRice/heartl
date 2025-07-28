@@ -9,11 +9,13 @@ import { User } from "../src/data/interfaces"
 type storeType = {
     isDark: boolean;
     setIsDark: () => void;
-    user: User,
+    user: User | null,
     setUser: (user: User) => void;
+    thresholdRatio: [number, number];
+    setThresholdRatio: (threshold: [number, number]) => void;
 }
 
-export const store = create<storeType>((set) => ({
+const useStore = create<storeType>((set) => ({
     isDark: localStorage.getItem("theme") === "dark",
     setIsDark: () => set((state) => {
      const newDark = !state.isDark;
@@ -32,5 +34,11 @@ export const store = create<storeType>((set) => ({
     user: null,
     setUser: (user: User) => set(() => {
         return {user: user}
+    }),
+    thresholdRatio: [0,0],
+    setThresholdRatio: (threshold: [number, number]) => set(() => {
+        return {thresholdRatio: [threshold[0], threshold[1]]}
     })
 }))
+
+export default useStore;

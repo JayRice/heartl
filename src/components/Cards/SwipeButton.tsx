@@ -4,12 +4,15 @@ interface Props {
     children: ReactNode;
     disabled?: boolean;
     className: string;
+    style?: React.CSSProperties;
 
 }
-export default function SwipeButton({onClick,children, disabled=false, className} : Props){
+
+export default function SwipeButton({onClick,children, disabled=false, className, style } : Props){
 
 
-    return (<div  className={"relative flex justify-center items-center rounded-full p-3 bg-[#21252E] transition  " + className + " " + (disabled ? "" : "hover:scale-110")}>
+
+    return (<div style={style}  className={"relative flex justify-center items-center rounded-full p-3 bg-[#21252E] transition  " + className + " " + (disabled ? "" : "hover:scale-110")}>
         <div className={"w-full h-full flex justify-center items-center " + (disabled ? "text-gray-600 opacity-40":"")}>
             {children}
         </div>

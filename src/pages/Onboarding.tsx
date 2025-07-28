@@ -114,7 +114,7 @@ export default function Onboarding({email, phone}: Props) {
 
 
             <div className={"fixed w-full h-20 bg-primary border-b-[1px] border-complementary z-40"}>
-                <Logo classNameParent={"absolute m-4"} classNameHeart={"text-red-600"}></Logo>
+                <Logo classNameParent={"absolute m-4 text-white"} classNameHeart={"text-red-600"}></Logo>
 
             </div>
 
