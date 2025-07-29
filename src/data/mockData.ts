@@ -61,6 +61,67 @@ export const mockUsers: User[] = [
     distance: 15,
     interests: ['Fitness', 'Food', 'Travel'],
     verified: false
+  },
+  {
+    id: '5',
+    name: 'Natalie',
+    age: 18,
+    photos: [
+      'https://images.pexels.com/photos/1065084/pexels-photo-1065084.jpeg?auto=compress&cs=tinysrgb&w=600',
+      'https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?auto=compress&cs=tinysrgb&w=600',
+      'https://images.pexels.com/photos/733872/pexels-photo-733872.jpeg?auto=compress&cs=tinysrgb&w=600'
+    ],
+    bio: 'Love traveling and good coffee ☕',
+    distance: 11,
+    interests: ['Travel', 'Coffee', 'Photography'],
+    verified: true
+  },
+  {
+    id: '6',
+    name: 'Emma',
+    age: 22,
+    photos: [
+      'https://images.pexels.com/photos/1181686/pexels-photo-1181686.jpeg?auto=compress&cs=tinysrgb&w=600',
+      'https://images.pexels.com/photos/1130626/pexels-photo-1130626.jpeg?auto=compress&cs=tinysrgb&w=600',
+      'https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=600',
+      'https://images.pexels.com/photos/3763188/pexels-photo-3763188.jpeg?auto=compress&cs=tinysrgb&w=600',
+      'https://images.pexels.com/photos/1819644/pexels-photo-1819644.jpeg?auto=compress&cs=tinysrgb&w=600'
+    ],
+    bio: 'Yoga instructor and book lover 📚',
+    distance: 5,
+    interests: ['Yoga', 'Reading', 'Health'],
+    verified: false
+  },
+  {
+    id: '7',
+    name: 'Sofia',
+    age: 25,
+    photos: [
+      'https://images.pexels.com/photos/1181391/pexels-photo-1181391.jpeg?auto=compress&cs=tinysrgb&w=600',
+      'https://images.pexels.com/photos/295821/pexels-photo-295821.jpeg?auto=compress&cs=tinysrgb&w=600',
+      'https://images.pexels.com/photos/762020/pexels-photo-762020.jpeg?auto=compress&cs=tinysrgb&w=600',
+      'https://images.pexels.com/photos/2959192/pexels-photo-2959192.jpeg?auto=compress&cs=tinysrgb&w=600',
+      'https://images.pexels.com/photos/2064451/pexels-photo-2064451.jpeg?auto=compress&cs=tinysrgb&w=600',
+      'https://images.pexels.com/photos/1761279/pexels-photo-1761279.jpeg?auto=compress&cs=tinysrgb&w=600'
+    ],
+    bio: 'Artist and dog mom 🐕',
+    distance: 8,
+    interests: ['Art', 'Dogs', 'Music'],
+    verified: true
+  },
+  {
+    id: '1',
+    name: 'Olivia',
+    age: 24,
+    photos: [
+      'https://images.pexels.com/photos/1181424/pexels-photo-1181424.jpeg?auto=compress&cs=tinysrgb&w=600',
+      'https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=600',
+      'https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?auto=compress&cs=tinysrgb&w=600'
+    ],
+    bio: 'Fitness enthusiast and foodie 🍕',
+    distance: 15,
+    interests: ['Fitness', 'Food', 'Travel'],
+    verified: false
   }
 ];
 

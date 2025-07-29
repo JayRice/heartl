@@ -13,6 +13,10 @@ type storeType = {
     setUser: (user: User) => void;
     thresholdRatio: [number, number];
     setThresholdRatio: (threshold: [number, number]) => void;
+
+    // Only for testing purposes
+    currentUserIndex: number;
+    setCurrentUserIndex: (index: number) => void;
 }
 
 const useStore = create<storeType>((set) => ({
@@ -38,6 +42,12 @@ const useStore = create<storeType>((set) => ({
     thresholdRatio: [0,0],
     setThresholdRatio: (threshold: [number, number]) => set(() => {
         return {thresholdRatio: [threshold[0], threshold[1]]}
+    }),
+
+    // Change this to swipeBuffer when implementing swipe
+    currentUserIndex: 0,
+    setCurrentUserIndex: (index: number) => set(() => {
+        return {currentUserIndex: index}
     })
 }))
 

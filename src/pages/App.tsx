@@ -21,7 +21,6 @@ import ProfileTab from "../components/Tabs/ProfileTab.tsx"
 
 const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'discover' | 'matches' | 'messages' | 'profile'>('discover');
-  const [currentUserIndex, setCurrentUserIndex] = useState(0);
   const [matches, setMatches] = useState<Match[]>(mockMatches);
   const [chats, setChats] = useState<Chat[]>(mockChats);
   const [showMatchNotification, setShowMatchNotification] = useState<User | null>(null);
@@ -30,16 +29,7 @@ const App: React.FC = () => {
   const navigate = useNavigate();
 
 
-  const handleSwipe = (direction: 'left' | 'right' | 'up') => {
-    const currentUser = mockUsers[currentUserIndex];
 
-    if (direction === 'right' || direction === 'up') {
-
-
-    }
-
-    setCurrentUserIndex(prev => (prev + 1) % mockUsers.length);
-  };
 
   const handleLogout = async () => {
     await logout();
@@ -60,7 +50,7 @@ const App: React.FC = () => {
     <div className="min-h-screen bg-gray-900 flex flex-col overflow-x-hidden">
 
 
-      {activeTab === 'discover' && <DiscoverTab currentUserIndex={currentUserIndex} handleSwipe={handleSwipe} />}
+      {activeTab === 'discover' && <DiscoverTab />}
       {activeTab === 'matches' && <MatchesTab matches={matches}  chats={chats} setChats={setChats} setActiveTab={setActiveTab} />}
       {activeTab === 'messages' && <MessagesTab selectedChat={selectedChat} chats={chats} setSelectedChat={setSelectedChat} handleSendMessage={handleSendMessage} />}
       {activeTab === 'profile' && <ProfileTab  handleLogout={handleLogout}/>}

@@ -1,52 +1,65 @@
-import React, {useEffect, useState, useRef} from 'react';
+import React, {useEffect, useState, useRef, RefObject,forwardRef} from 'react';
 import { MapPin, Shield } from 'lucide-react';
 import { User } from '../../../types';
-import { useSwipe } from '../../../hooks/useSwipe';
 import checkSwipe from "../../../logic/checkSwipe.ts";
 
-import store from "../../../../store/store.ts"
+
+import useStore from "../../../../store/store.ts"
 
 import NopeImage from "../../../images/NopeImage.png"
 import LikeImage from "../../../images/LikeImage.png"
 import SuperLikeImage from "../../../images/SuperLikeImage.png"
+import {useSwipe} from "../../../hooks/useSwipe.ts";
+
 
 
 interface Props {
   user: User;
-  onSwipe: (direction: 'left' | 'right' | 'up') => void;
   index: number;
   style?: React.CSSProperties;
 }
 
 
-const SwipeCard: React.FC<Props> = ({ user, onSwipe , style, index }) => {
+const SwipeCard = forwardRef<HTMLDivElement, Props>((props , ref) => {
 
+    const {user, index, style} = props;
   const [imageIndex, setImageIndex] = useState<number>(0);
 
-  const swipeCardRef = useRef<HTMLDivElement>(null);
 
-  const thresholdRatio = store((state) => state.thresholdRatio);
-  const setThresholdRatio = store((state) => state.setThresholdRatio);
+
+  const thresholdRatio = useStore((state) => state.thresholdRatio);
 
 
   const swipeBias = checkSwipe();
 
 
-  useSwipe(swipeCardRef, onSwipe)
+  useSwipe( ref as RefObject<HTMLElement> )
+
+
+
+
+
+
+
 
 
     useEffect(() => {
 
+        console.log(thresholdRatio)
+    }, [imageIndex, thresholdRatio ]);
 
-    }, [imageIndex, ]);
+    console.log("Index: ", index, "Ref: ", ref)
 
 
   return (
       <div className={`select-none absolute overflow-hidden cursor-pointer active:cursor-grabbing bg-black lg:rounded-2xl shadow-2xl w-full h-full flex justify-center z-[${3-index}] `}>
 
           <div
-              ref={swipeCardRef}
+              ref={ref}
+              id={`swipe-card-${index}`}
               style={{ ...style }}
+
+
 
               className={`w-full flex justify-center z-[${3-index}] bg-black`}>
 
@@ -166,6 +179,6 @@ const SwipeCard: React.FC<Props> = ({ user, onSwipe , style, index }) => {
       </div>
 
   );
-};
+});
 
 export default SwipeCard;
