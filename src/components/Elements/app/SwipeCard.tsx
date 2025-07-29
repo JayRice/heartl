@@ -1,5 +1,5 @@
 import React, {useEffect, useState, useRef, RefObject,forwardRef} from 'react';
-import { MapPin, Shield } from 'lucide-react';
+import { MapPin, Shield, Home,ChevronLeft, ChevronRight, ChevronDown, ChevronUp } from 'lucide-react';
 import { User } from '../../../types';
 import checkSwipe from "../../../logic/checkSwipe.ts";
 
@@ -16,14 +16,18 @@ import {useSwipe} from "../../../hooks/useSwipe.ts";
 interface Props {
   user: User;
   index: number;
+  compactMode: boolean;
+  setCompactMode: (value: boolean) => void;
   style?: React.CSSProperties;
+
 }
 
 
 const SwipeCard = forwardRef<HTMLDivElement, Props>((props , ref) => {
 
-    const {user, index, style} = props;
+    const {user, index, style, compactMode, setCompactMode} = props;
   const [imageIndex, setImageIndex] = useState<number>(0);
+
 
 
 
@@ -32,8 +36,12 @@ const SwipeCard = forwardRef<HTMLDivElement, Props>((props , ref) => {
 
   const swipeBias = checkSwipe();
 
+  const holding = useRef(false);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  useSwipe( ref as RefObject<HTMLElement> )
+
+
+  useSwipe( ref as RefObject<HTMLElement>, compactMode )
 
 
 
@@ -45,40 +53,73 @@ const SwipeCard = forwardRef<HTMLDivElement, Props>((props , ref) => {
 
     useEffect(() => {
 
-        console.log(thresholdRatio)
     }, [imageIndex, thresholdRatio ]);
 
-    console.log("Index: ", index, "Ref: ", ref)
 
 
   return (
-      <div className={`select-none absolute overflow-hidden cursor-pointer active:cursor-grabbing bg-black lg:rounded-2xl shadow-2xl w-full h-full flex justify-center z-[${3-index}] `}>
+      <div className={`select-none absolute overflow-hidden cursor-pointer  bg-black lg:rounded-2xl shadow-2xl w-full h-full flex justify-center z-[${3-index}] 
+       inset-fade-bottom`}>
 
           <div
               ref={ref}
               id={`swipe-card-${index}`}
               style={{ ...style }}
+              className={`group w-full flex justify-center z-[${3-index}] bg-black`}
+              onMouseDown={(e) => {
+                  if (e.defaultPrevented) return;
+                  e.stopPropagation();
+                  timeoutRef.current = setTimeout(() => {
+                        holding.current = true
+                  }, 150);
 
 
 
-              className={`w-full flex justify-center z-[${3-index}] bg-black`}>
+              }}
+              onMouseUp={(e) => {
+                  if (e.defaultPrevented) return;
+                  e.stopPropagation();
+                  if (timeoutRef.current) {
+                      clearTimeout(timeoutRef.current)
+                  }
+                  if (holding.current) {
+                      holding.current = false;
+                      return;
+                  }
+                  const rect = e.currentTarget.getBoundingClientRect();
+                  const clickX = e.clientX;
+                  const middle = rect.left + rect.width / 2;
 
-              <div className={"absolute top-0 mt-2 w-full  z-10 bg-primary bg-opacity-75 rounded-lg flex flex-row p-[2px] gap-1 px-2 items-center"}>
+                  if (clickX <= middle) {
+                      setImageIndex((prev) => (prev <= 0 ? user.photos.length-1:prev-1) )
+
+                  }else{
+                      setImageIndex((prev) => (prev >= user.photos.length-1 ? 0 : prev+1));
+                  }
+
+
+              }}>
+
+
+
+              <div className={"absolute top-0 mt-2 w-full  z-20 bg-primary bg-opacity-75 rounded-lg flex flex-row p-[2px] gap-1 px-2 items-center"}>
                   {user.photos.map((_, index) => (
-                      <div  onMouseDown={(e) => {
-                          console.log("Index: ", index)
+                      <div onPointerDown={(e) => {
 
-                          e.stopPropagation()
                           setImageIndex(index)
 
-
-                      }} onPointerDown={(e) => e.stopPropagation()}
+                          e.stopPropagation();
+                          e.preventDefault();
+                      }} onPointerUp={(e) => {
+                          e.stopPropagation();
+                          e.preventDefault();
+                      }}
 
                             className={ "p-[2px] hover:bg-white w-full h-full flex items-center justify-center rounded-lg"}>
                           <div
 
-                               className={`cursor-pointer  w-full h-1  flex items-center  rounded-lg z-[${3-index}] ` +
-                                   (imageIndex == index ? "bg-white":"bg-gray-500 " )}></div>
+                              className={`cursor-pointer  w-full h-1  flex items-center  rounded-lg z-[${3-index}] ` +
+                                  (imageIndex == index ? "bg-white":"bg-gray-500 " )}></div>
                       </div>
 
                   ))}
@@ -86,9 +127,45 @@ const SwipeCard = forwardRef<HTMLDivElement, Props>((props , ref) => {
 
 
 
+              <div className={"absolute inset-fade-bottom w-full h-full z-10 "} />
+
+              <div className={"absolute lg:block hidden w-full h-full z-10 "}>
+                  <div className={"hidden group-hover:flex  w-full h-full  z-10  justify-between items-center p-4"}>
+                      <div onPointerDown={(e) => {e.stopPropagation()}}  onMouseDown={(e) => {
+                          e.stopPropagation();
+                          setImageIndex((prev) => (prev <= 0 ? user.photos.length-1:prev-1) )
+                      }} className={"pointer-events-auto rounded-full p-1 bg-black bg-opacity-60 hover:bg-opacity-70 transition-opacity"}>
+                          <ChevronLeft className={"w-6 h-6 text-white "} />
+
+                      </div>
+                      <div onMouseDown={(e) => {
+                          e.stopPropagation();
+                          setImageIndex((prev) => (prev >= user.photos.length-1 ? 0 : prev+1));
+                      }}  className={"pointer-events-auto rounded-full p-1 bg-black bg-opacity-60 hover:bg-opacity-70 transition-opacity"}>
+                          <ChevronRight className={"w-6 h-6 text-white "} />
+
+                      </div>
+                  </div>
+              </div>
+
 
               {/* Content */}
-              <div className={`absolute bottom-0 left-0 right-0 p-6 text-white z-10  `}>
+              <div className={`absolute bottom-0 left-0 right-0 p-6 text-white z-10 `}>
+
+                  <div  onPointerDown={(e) => {
+
+                      e.stopPropagation();
+                      e.preventDefault();
+
+                      setCompactMode(!compactMode);
+                  }} onPointerUp={(e) => {
+                        e.stopPropagation();
+                        e.preventDefault();
+                  }} className={"border-[1px]  border-white m-8 absolute pointer-events-auto rounded-full p-1 bg-black bg-opacity-60 hover:scale-110 transition-opacity right-0 top-0 "}>
+
+
+                      <ChevronUp className={"w-6 h-6 text-white"}></ChevronUp>
+                  </div>
                   <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center space-x-2">
                           <h2 className="text-2xl font-bold">{user.name}</h2>
@@ -103,10 +180,17 @@ const SwipeCard = forwardRef<HTMLDivElement, Props>((props , ref) => {
                   </div>
 
                   {user.distance && (
-                      <div className="flex items-center space-x-1 mb-2">
-                          <MapPin className="h-4 w-4" />
-                          <span className="text-sm">{user.distance} miles away</span>
+                      <div>
+                          <div className="flex items-center space-x-1 mb-2">
+                              <Home className="h-4 w-4" />
+                              <span className="text-sm">Lives in Memphis,TN</span>
+                          </div>
+                          <div className="flex items-center space-x-1 mb-2">
+                              <MapPin className="h-4 w-4" />
+                              <span className="text-sm">{user.distance} miles away</span>
+                          </div>
                       </div>
+
                   )}
 
                   {/*{user.bio && (*/}

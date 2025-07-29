@@ -1,8 +1,9 @@
 import {onSwipe} from "../server/handleSwipe.ts";
 
+import {ANIMATION_INTERVAL} from "./constants.ts";
+
 export default function handleSwipe(dir: "left" | "right" | "up", el: HTMLElement) {
 
-    console.log("handleSwipe", dir, el);
     el.style.transition = 'transform 0.5s ease';
 
 
@@ -16,11 +17,13 @@ export default function handleSwipe(dir: "left" | "right" | "up", el: HTMLElemen
     }else if (dir == "up"){
         el.style.transform = `translate(0px, -1000px)`
     }
-    onSwipe(dir);
     setTimeout(() => {
-        el.style.transition = 'none';
+        onSwipe(dir);
 
-    }, 500)
+        el.style.transition = 'none';
+        el.style.transform = `translate(0px, 0px)`
+
+    }, ANIMATION_INTERVAL)
 
 
 

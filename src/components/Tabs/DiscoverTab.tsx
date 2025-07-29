@@ -1,4 +1,4 @@
-import {Zap} from "lucide-react"
+import {Shield, Zap} from "lucide-react"
 
 import SwipeCard from "../Elements/app/SwipeCard";
 import SwipeActions from "../Cards/SwipeActions.tsx";
@@ -6,7 +6,7 @@ import SimpleTopNav from "../Layout/SimpleTopNav.tsx"
 import {getSwipeUsers} from "../../server/handleSwipe.ts";
 
 import useStore from "../../../store/store.ts"
-import  {useEffect, useRef} from "react";
+import React, {useEffect, useRef, useState} from "react";
 import {mockUsers} from "../../data/mockData.ts";
 
 
@@ -25,11 +25,29 @@ export default function DiscoverTab () {
     const currentUserIndex = useStore((state) => state.currentUserIndex);
     const setCurrentUserIndex = useStore((state) => state.setCurrentUserIndex);
 
+
+    const currentUser = mockUsers[currentUserIndex];
+
     const nextUser = () => {
 
         setCurrentUserIndex((currentUserIndex + 1) % mockUsers.length);
     }
 
+    const handleButtons = (button : "undo" | "pass" |"superlike" |"like" |"boost") => {
+
+        switch (button) {
+            case "undo":
+                break;
+            case "pass":
+                handleSwipeButtons("left");break;
+            case "superlike":
+                handleSwipeButtons("up");break;
+            case "like":
+                handleSwipeButtons("right");break;
+            case "boost":
+                break;
+        }
+    }
     const handleSwipeButtons = (dir: "left" | "right" | "up") =>{
 
         if(!swipeCardRef.current) return;
@@ -50,23 +68,58 @@ export default function DiscoverTab () {
 
     console.log("Reloading, ", currentUserIndex);
 
+    const [compactMode, setCompactMode] = useState<boolean>(false);
+
     return (
         <div className="flex-1 flex flex-col">
-            <SimpleTopNav>
-                <div className={"absolute right-0 mt-2"}>
 
-                    <div className={"mr-4 p-1 bg-gray-800 bg-opacity-50 rounded-full hover:scale-110"}>
-                        <Zap className={"w-full h-full text-purple-900 fill-purple-900 "}></Zap>
+            { !compactMode &&
+                (
+                    <SimpleTopNav>
+                        <div className={"absolute right-0 mt-2"}>
 
-                    </div>
-                </div>
-            </SimpleTopNav>
+                            <div className={"mr-4 p-1 bg-gray-800 bg-opacity-50 rounded-full hover:scale-110"}>
+                                <Zap className={"w-full h-full text-purple-900 fill-purple-900 "}></Zap>
+
+                            </div>
+                        </div>
+                    </SimpleTopNav>
+                )
+
+            }
 
             <div className="flex-1 relative lg:max-w-lg max-w-full w-full lg:mx-auto lg:p-4 ">
+                {compactMode && (
+                    <div className={"w-full h-16 p-4  bg-primary flex items-center text-white gap-2"}>
+
+                        <p className={"text-2xl font-bold"}>{currentUser.name}</p>
+                        <p className={"text-2xl"}>{currentUser.age}</p>
+                        {currentUser.verified && (
+                            <div title={"Photo Verified"}>
+                                <Shield  className="h-5 w-5 text-blue-400 fill-current" />
+
+                            </div>
+                        )}
+
+
+                    </div>
+                )}
                 <div className="relative w-full h-[75vh] min-h-[100px]">
 
 
-                            {getSwipeUsers(useStore((state) => state.currentUserIndex)).map((user, index) => {
+                            { compactMode ?
+                                <SwipeCard
+                                    ref={swipeCardRef}
+                                    key={`card`}
+                                    user={currentUser}
+                                    index={0}
+                                    style={{
+                                        zIndex: 0,
+                                    }}
+                                    compactMode={compactMode}
+                                    setCompactMode={setCompactMode}
+                                />
+                                :getSwipeUsers(currentUserIndex).map((user, index) => {
 
                                 return (
                                  <SwipeCard
@@ -77,6 +130,8 @@ export default function DiscoverTab () {
                                     style={{
                                         zIndex: 3 - index,
                                     }}
+                                    compactMode={compactMode}
+                                    setCompactMode={setCompactMode}
                                 />
                             )
                             }
@@ -85,13 +140,13 @@ export default function DiscoverTab () {
 
 
                 </div>
-                <div className={"absolute w-full mx-auto bg-black h-32 bottom-8"}>
+                <div className={"absolute w-full mx-auto bg-black lg:bg-transparent h-32 bottom-8"}>
                     <SwipeActions
-                        onUndo={() => console.log('Undo')}
-                        onPass={() => handleSwipeButtons('left')}
-                        onSuperLike={() => handleSwipeButtons('up')}
-                        onLike={() => handleSwipeButtons('right')}
-                        onBoost={() => console.log('Boost')}
+                        onUndo={() => handleButtons('undo')}
+                        onPass={() => handleButtons('pass')}
+                        onSuperLike={() => handleButtons('superlike')}
+                        onLike={() => handleButtons('like')}
+                        onBoost={() => handleButtons('boost')}
                     />
                 </div>
 

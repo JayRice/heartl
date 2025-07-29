@@ -10,12 +10,13 @@ import handleSwipe from "../logic/handleSwipe.ts"
 
 import {ANIMATION_INTERVAL} from "../logic/constants.ts"
 
-export const useSwipe = ( ref: React.RefObject<HTMLElement> | ((instance: HTMLElement | null) => void) ) => {
+export const useSwipe = ( ref: React.RefObject<HTMLElement> | ((instance: HTMLElement | null) => void), compactMode?: boolean ) => {
 
   useEffect(() => {
 
+    if(compactMode){ return}
 
-    let frame = requestAnimationFrame(() => {
+    const frame = requestAnimationFrame(() => {
 
       /////////////////////// HOW TO PASS FORWARDED REF TO A HOOK /////////////////////////////////////
       const el =
@@ -24,9 +25,13 @@ export const useSwipe = ( ref: React.RefObject<HTMLElement> | ((instance: HTMLEl
               : ref?.current;
 
 
+
       ///////////////////////////////////////////////////////
 
       if (!el) return;
+
+      el.style.transition = 'none';
+      el.style.transform = 'translate(0, 0) rotate(0deg)';
 
 
 
@@ -98,6 +103,7 @@ export const useSwipe = ( ref: React.RefObject<HTMLElement> | ((instance: HTMLEl
 
         setTimeout(() => {
           nextUser()
+
         }, ANIMATION_INTERVAL)
 
 

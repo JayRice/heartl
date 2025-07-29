@@ -35,7 +35,7 @@ const SwipeActions: React.FC<SwipeActionsProps> = ({
                 style={{
                     transform: `${isThresholdZero ? "scaleX(100%)":"scaleX(0%)" }`
                 }}
-                className={"absolute w-full p-4 transition-transform"}>
+                className={"lg:hidden absolute w-full p-4 transition-transform"}>
                 <div className={"w-full h-4  rounded-b-full bg-[#21252E] "}></div>
             </div>
 

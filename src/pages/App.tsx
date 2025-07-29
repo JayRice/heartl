@@ -56,7 +56,7 @@ const App: React.FC = () => {
       {activeTab === 'profile' && <ProfileTab  handleLogout={handleLogout}/>}
 
 
-      <div className=" lg:hidden">
+      <div className="lg:hidden">
         <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />
       </div>
 
