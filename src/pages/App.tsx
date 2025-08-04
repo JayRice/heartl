@@ -22,7 +22,7 @@ import SideNav from "../components/Elements/app/SideNav";
 
 
 const App: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'recs' | 'discover' | 'messages' | 'profile'>('discover');
+  const [activeTab, setActiveTab] = useState<'recs' | 'matches' | 'discover' | 'messages' | 'profile'>('discover');
   const [matches, setMatches] = useState<Match[]>(mockMatches);
   const [chats, setChats] = useState<Chat[]>(mockChats);
   const [showMatchNotification, setShowMatchNotification] = useState<User | null>(null);

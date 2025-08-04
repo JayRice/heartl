@@ -18,7 +18,6 @@ import ImageEditModal from "../components/Modals/ImageEditModal.tsx"
 
 
 import {handleLogin} from "../server/handleLogin.ts"
-import save_images from "../database/save_images.ts"
 
 
 
@@ -34,15 +33,13 @@ export default function Onboarding({authUser} : {authUser: FirebaseUser}) {
     const navigate = useNavigate();
 
 
+    const storedDataUser = useDatabaseStore((state) => state.user);
+
+
+    console.log("Stored User", storedDataUser)
 
     const [DataUser, setDataUser] = useState<User>({
-        id: authUser.uid,
-        email: authUser.email,
-        name: "j",
-        birthday: ["09", "05", "2006"],
-        gender: "male",
-        interested_in: "women",
-        intent: "long-term-open-short"
+        ...storedDataUser
     } as User);
 
     const [images, setImages] = useState<(File | null)[]>([null, null, null, null, null, null]);
@@ -96,6 +93,11 @@ export default function Onboarding({authUser} : {authUser: FirebaseUser}) {
 
         } else if (inputType === "email") {
             const email = DataUser.email.trim();
+
+
+            if(email == ""){
+                return;
+            }
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             if (!emailRegex.test(email)) {
                 newErrors.email = "Invalid email format.";
@@ -106,11 +108,15 @@ export default function Onboarding({authUser} : {authUser: FirebaseUser}) {
             }
 
         } else if (inputType === "birthday") {
-
+            console.log("Birthday: ", DataUser.birthday);
+            if (DataUser.birthday[0] == ''){
+                return;
+            }
             const [month, day, year] = DataUser.birthday.map(Number);
 
+
             const birthDate = new Date(year, month - 1, day);
-            console.log(birthDate)
+
             const ageDifMs = Date.now() - birthDate.getTime();
             const age = new Date(ageDifMs).getUTCFullYear() - 1970;
 
@@ -157,13 +163,10 @@ export default function Onboarding({authUser} : {authUser: FirebaseUser}) {
             }
 
 
-            const docIds = await save_images(images.filter((image) => image != null));
 
-            if (!docIds || docIds.length <= 0){
-                return toast(`Could not save images - Please try again.`)
-            }
-            response = await verifyImages(docIds, DataUser);
+            const files : File[] = images.filter((img) => img != null )
 
+            response = await verifyImages(files, DataUser);
 
             setIsFetching(false)
 
@@ -177,6 +180,7 @@ export default function Onboarding({authUser} : {authUser: FirebaseUser}) {
                 }
                 console.error(response.error)
             } else if (response.success){
+                console.log("Success!: ", DataUser)
                 setStoredDataUser(DataUser)
                 navigate("/app")
             }else{

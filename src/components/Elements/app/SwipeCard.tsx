@@ -71,7 +71,7 @@ const SwipeCard = forwardRef<HTMLDivElement, Props>((props , ref) => {
               ref={ref}
               id={`swipe-card-${index}`}
               style={{ ...style }}
-              className={`group w-full flex justify-center z-[${3-index}] bg-black ${isCompactMode ? "h-[100vh]" : "h-full"}`}
+              className={`group w-full flex justify-center z-[${3-index}] bg-black h-full`}
               onMouseDown={(e) => {
                   if (e.defaultPrevented) return;
                   e.stopPropagation();
@@ -276,9 +276,6 @@ const SwipeCard = forwardRef<HTMLDivElement, Props>((props , ref) => {
 
           </div>
 
-          <div className={"relative h-[100vh]"}>
-
-          </div>
       </div>
 
   );

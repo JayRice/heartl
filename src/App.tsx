@@ -5,10 +5,15 @@ import App from './pages/App';
 import { useAuth } from './hooks/useAuth';
 import Onboarding from "./pages/Onboarding.tsx";
 import useDatabaseStore from "../store/databaseStore.ts"
+import { doc, onSnapshot } from "firebase/firestore";
+import {db} from "../src/config/firebase.ts"
+
+
 
 import {getDataUser} from "./database/get.ts";
 
 import {User} from "../src/types/index.ts"
+import {Heart} from "lucide-react";
 
 const AppRouter: React.FC = () => {
   const userPrefersDark = localStorage.getItem('theme') === 'dark';
@@ -17,35 +22,73 @@ const AppRouter: React.FC = () => {
   }
   const { authUser, loading } = useAuth();
 
+  const [isLoadingUser, setIsLoadingUser] = useState(true);
 
-  const [DataUser, setDataUser] = useState<User | null>(null);
 
-  const storedDataUser = useDatabaseStore((state) => state.user);
+
+  const [isValidUser, setIsValidUser] = useState<boolean>(false);
+
   const setStoredDataUser = useDatabaseStore((state) => state.setUser)
 
 
+
   useEffect(() => {
-    // if data user not already cached
-    async function getUser(){
-      if(!storedDataUser) {
-        const user = await getDataUser();
-        setStoredDataUser(user);
-        return setDataUser(user);
+    if(!authUser) {return}
+
+    const userRef = doc(db, "users", authUser.uid);
+
+    const unsubscribe = onSnapshot(userRef, (snapshot) => {
+
+
+      if (!snapshot.exists()) {
+        setIsLoadingUser(false);
+        setStoredDataUser({
+          id: authUser.uid,
+          email: authUser.email,
+          name: "",
+          birthday: ["", "", ""],
+          gender: null,
+          interested_in: null,
+          intent: null
+        } );
+      } else {
+        const userData = snapshot.data() as User;
+        setStoredDataUser(userData);
+
+        const imageIds = userData.imageIds;
+
+        console.log("Image Ids: ", imageIds)
+
+
+        if(!imageIds || (imageIds && imageIds.length < 2)){
+          return setIsValidUser(false);
+        }
+        setIsValidUser(true);
+        setIsLoadingUser(false);
       }
-      setDataUser(storedDataUser);
-    }
-    getUser();
-  }, [storedDataUser]);
+
+
+
+    });
+
+
+    return () => unsubscribe(); // cleanup
+  }, [authUser]);
+
+
+  useEffect(() => {
+    console.log("Valid: ", isValidUser)
+  }, [isValidUser]);
 
 
 
 
 
 
-  if (loading) {
+  if (loading || isLoadingUser) {
     return (
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
-        <div className="text-white">Loading...</div>
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center bg-gradient-to-br from-pink-500 via-red-500 to-purple-600">
+        <Heart className={"w-24 h-24 text-white fill-white pulse-animation "}></Heart>
       </div>
     );
   }
@@ -55,15 +98,15 @@ const AppRouter: React.FC = () => {
       <Routes>
         <Route 
           path="/" 
-          element={DataUser ? <App />: authUser ? <Onboarding authUser={authUser} /> : <Welcome />}
+          element={isValidUser ? <App />: authUser ? <Onboarding authUser={authUser} /> : <Welcome />}
         />
         <Route
         path="/app/onboarding"
-        element={DataUser ? <App />: authUser ? <Onboarding authUser={authUser} /> : <Welcome />}
+        element={isValidUser ? <App />: authUser ? <Onboarding authUser={authUser} /> : <Welcome />}
         ></Route>
         <Route 
           path="/app"
-          element={DataUser ? <App />: authUser ? <Onboarding authUser={authUser} /> : <Welcome />}
+          element={isValidUser ? <App />: authUser ? <Onboarding authUser={authUser} /> : <Welcome />}
         />
       </Routes>
     </Router>

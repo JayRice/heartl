@@ -13,6 +13,7 @@ export interface User {
   sexual_orientation?: "straight" | "gay" | "lesbian" | "bisexual" | "asexual"
   conversationIds: string[];
   matchIds: string[];
+  imageIds?: string[];
 
 }
 

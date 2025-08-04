@@ -2,7 +2,7 @@ import React from 'react';
 import { Heart, MessageCircle, User, Stars, Search  } from 'lucide-react';
 
 interface Props {
-  activeTab: 'recs' | 'discover' | 'messages' | 'profile';
+  activeTab: 'recs' | 'matches' | 'discover' | 'messages' | 'profile';
   onTabChange: (tab: 'recs' | 'discover' | 'messages' | 'profile') => void;
 }
 
@@ -29,7 +29,7 @@ const BottomNav: React.FC<Props> = ({ activeTab, onTabChange }) => {
                 : 'text-gray-400 hover:text-white'
             }`}
           >
-            <Icon className={`h-6 w-6  fill-current ${activeTab === id ? 'text-red-600' : ''}`} />
+            <Icon className={`h-6 w-6 fill-current ${(id == "matches") && "fill-none"} ${activeTab === id ? 'text-red-600' : ''}`} />
           </button>
         ))}
       </div>
