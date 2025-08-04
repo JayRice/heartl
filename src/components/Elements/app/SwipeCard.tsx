@@ -1,5 +1,5 @@
 import React, {useEffect, useState, useRef, RefObject,forwardRef} from 'react';
-import { MapPin, Shield, Home,ChevronLeft, ChevronRight, ChevronDown, ChevronUp } from 'lucide-react';
+import { MapPin, Shield, Home,ChevronLeft, ChevronRight, ChevronUp } from 'lucide-react';
 import { User } from '../../../types';
 import checkSwipe from "../../../logic/checkSwipe.ts";
 
@@ -16,8 +16,6 @@ import {useSwipe} from "../../../hooks/useSwipe.ts";
 interface Props {
   user: User;
   index: number;
-  compactMode: boolean;
-  setCompactMode: (value: boolean) => void;
   style?: React.CSSProperties;
 
 }
@@ -25,13 +23,18 @@ interface Props {
 
 const SwipeCard = forwardRef<HTMLDivElement, Props>((props , ref) => {
 
-    const {user, index, style, compactMode, setCompactMode} = props;
-  const [imageIndex, setImageIndex] = useState<number>(0);
+    const {user, index, style} = props;
+    const [imageIndex, setImageIndex] = useState<number>(0);
+
+    const isCompactMode = useStore((state) => state.isCompactMode);
+    const setIsCompactMode = useStore((state) => state.setIsCompactMode);
 
 
 
 
-  const thresholdRatio = useStore((state) => state.thresholdRatio);
+
+
+    const thresholdRatio = useStore((state) => state.thresholdRatio);
 
 
   const swipeBias = checkSwipe();
@@ -40,8 +43,11 @@ const SwipeCard = forwardRef<HTMLDivElement, Props>((props , ref) => {
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
 
+  const compactModeClasses = isCompactMode ? "overflow-auto":"";
 
-  useSwipe( ref as RefObject<HTMLElement>, compactMode )
+
+
+  useSwipe( ref as RefObject<HTMLElement>, isCompactMode )
 
 
 
@@ -58,14 +64,14 @@ const SwipeCard = forwardRef<HTMLDivElement, Props>((props , ref) => {
 
 
   return (
-      <div className={`select-none absolute overflow-hidden cursor-pointer  bg-black lg:rounded-2xl shadow-2xl w-full h-full flex justify-center z-[${3-index}] 
-       inset-fade-bottom`}>
+      <div className={`select-none absolute overflow-hidden lg:overflow-visible  cursor-pointer  lg:rounded-2xl shadow-2xl w-full h-full flex justify-center z-[${3-index}] 
+        ` + compactModeClasses }>
 
           <div
               ref={ref}
               id={`swipe-card-${index}`}
               style={{ ...style }}
-              className={`group w-full flex justify-center z-[${3-index}] bg-black`}
+              className={`group w-full flex justify-center z-[${3-index}] bg-black ${isCompactMode ? "h-[100vh]" : "h-full"}`}
               onMouseDown={(e) => {
                   if (e.defaultPrevented) return;
                   e.stopPropagation();
@@ -98,7 +104,8 @@ const SwipeCard = forwardRef<HTMLDivElement, Props>((props , ref) => {
                   }
 
 
-              }}>
+              }}
+          >
 
 
 
@@ -127,7 +134,9 @@ const SwipeCard = forwardRef<HTMLDivElement, Props>((props , ref) => {
 
 
 
-              <div className={"absolute inset-fade-bottom w-full h-full z-10 "} />
+              { !isCompactMode &&
+                  <div className={"absolute inset-fade-bottom w-full h-full z-10 "} />
+              }
 
               <div className={"absolute lg:block hidden w-full h-full z-10 "}>
                   <div className={"hidden group-hover:flex  w-full h-full  z-10  justify-between items-center p-4"}>
@@ -150,14 +159,14 @@ const SwipeCard = forwardRef<HTMLDivElement, Props>((props , ref) => {
 
 
               {/* Content */}
-              <div className={`absolute bottom-0 left-0 right-0 p-6 text-white z-10 `}>
+              {!isCompactMode && <div className={`absolute bottom-0 left-0 right-0 p-6 text-white z-10 `}>
 
                   <div  onPointerDown={(e) => {
 
                       e.stopPropagation();
                       e.preventDefault();
 
-                      setCompactMode(!compactMode);
+                      setIsCompactMode(!isCompactMode);
                   }} onPointerUp={(e) => {
                         e.stopPropagation();
                         e.preventDefault();
@@ -210,55 +219,65 @@ const SwipeCard = forwardRef<HTMLDivElement, Props>((props , ref) => {
                   {/*    </div>*/}
                   {/*)}*/}
 
-              </div>
+              </div> }
 
               {/* Image */ }
-              <div className={"relative  max-w-lg w-full h-full "}>
-                  <div
-                      className=" w-full h-full bg-white rounded-2xl"
-                  >
-                      <div className="relative w-full h-full ">
-                          <img
-                              src={user.photos[imageIndex]}
-                              alt={user.name}
-                              className="w-full h-full object-cover inward-shadow"
-                              draggable={false}
-                          />
+              <div className={`relative  max-w-lg w-full h-full`} >
+                      <div
+                          className=" w-full h-full bg-white rounded-2xl"
+                      >
+                          <div className="relative w-full h-full ">
+                              <img
+                                  src={user.photos[imageIndex]}
+                                  alt={user.name}
+                                  className="w-full h-full object-cover inward-shadow"
+                                  draggable={false}
+                              />
 
 
-                          { index == 0 && (<>  {
-                              swipeBias == "dislike" && (
-                                  <div className={"absolute  z-20 top-0 right-0  w-80 h-auto"}>
-                                      <img src={NopeImage} className={`select-none `}
-                                           style={{ pointerEvents: "none", transform: "rotate(25deg)", opacity: Math.floor(Math.abs(thresholdRatio[0] * 100) ) / 100}}/>
-                                  </div>
-                              )
-                          }
+                              { index == 0 && (<>  {
+                                  swipeBias == "dislike" && (
+                                      <div className={"absolute  z-20 top-0 right-0  w-80 h-auto"}>
+                                          <img src={NopeImage} className={`select-none `}
+                                               style={{ pointerEvents: "none", transform: "rotate(25deg)", opacity: Math.floor(Math.abs(thresholdRatio[0] * 100) ) / 100}}/>
+                                      </div>
+                                  )
+                              }
 
-                          {
-                              swipeBias == "like" &&
-                              (
-                                  <div className={"absolute  z-20 top-0 right-0  w-80 h-auto left-0"}>
-                                  <img src={LikeImage} className={`select-none `}   style={{ pointerEvents: "none", transform: "rotate(-25deg)", opacity: Math.floor(Math.abs(thresholdRatio[0] * 100) ) / 100 }}/>
-                                </div>
-                              )
-                          }
-                          {
-                              swipeBias == "superlike"   &&
-                              (
-                                  <div className={"absolute  z-20 bottom-0 left-24  w-80 h-auto"}>
-                                      <img src={SuperLikeImage} className={`select-none `}   style={{ pointerEvents: "none", opacity: Math.floor(Math.abs(thresholdRatio[1] * 100) ) / 100}}/>
-                                  </div>
-                              )
-                          }
-                      </>)}
+                                  {
+                                      swipeBias == "like" &&
+                                      (
+                                          <div className={"absolute  z-20 top-0 right-0  w-80 h-auto left-0"}>
+                                              <img src={LikeImage} className={`select-none `}   style={{ pointerEvents: "none", transform: "rotate(-25deg)", opacity: Math.floor(Math.abs(thresholdRatio[0] * 100) ) / 100 }}/>
+                                          </div>
+                                      )
+                                  }
+                                  {
+                                      swipeBias == "superlike"   &&
+                                      (
+                                          <div className={"absolute  z-20 bottom-0 left-24  w-80 h-auto"}>
+                                              <img src={SuperLikeImage} className={`select-none `}   style={{ pointerEvents: "none", opacity: Math.floor(Math.abs(thresholdRatio[1] * 100) ) / 100}}/>
+                                          </div>
+                                      )
+                                  }
+                              </>)}
 
-                          {/* Gradient overlay */}
+                              {/* Gradient overlay */}
 
 
+                          </div>
                       </div>
                   </div>
-              </div>
+
+
+
+
+
+
+          </div>
+
+          <div className={"relative h-[100vh]"}>
+
           </div>
       </div>
 

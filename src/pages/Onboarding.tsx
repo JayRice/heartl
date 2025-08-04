@@ -1,8 +1,9 @@
 import {Pencil, Plus, ChevronRight} from "lucide-react"
 import {useNavigate} from "react-router-dom";
-import {useEffect, useState} from "react";
-import { User} from "../data/interfaces.ts"
+import {useEffect, useState, useRef} from "react";
+import { User} from "../types/index.ts"
 
+import {toast, Toaster} from "react-hot-toast"
 
 import Button from "../components/Elements/Button.tsx"
 import Logo from "../components/Elements/Logo.tsx"
@@ -15,24 +16,33 @@ import InterestsModal from "../components/Modals/InterestsModal.tsx";
 import PhotoCards from "../components/Elements/PhotoCards.tsx";
 import ImageEditModal from "../components/Modals/ImageEditModal.tsx"
 
-import {verify_user} from "../server/auth.tsx"
 
-interface Props {
-    email: string,
-    phone: string,
-}
-export default function Onboarding({email, phone}: Props) {
+import {handleLogin} from "../server/handleLogin.ts"
+import save_images from "../database/save_images.ts"
+
+
+
+import {User as FirebaseUser} from "firebase/auth"
+import verifyImages from "../server/verifyImages.ts";
+import LoadingSpinner from "../components/Elements/LoadingSpinner.tsx";
+import useDatabaseStore from "../../store/databaseStore.ts";
+
+
+export default function Onboarding({authUser} : {authUser: FirebaseUser}) {
+
 
     const navigate = useNavigate();
 
-    const [User, setUser] = useState<User>({
-        email: email,
-        phone: phone,
-        name: "",
-        birthday: ["", "", ""],
-        gender: null,
-        interested_in: null,
-        intent: null
+
+
+    const [DataUser, setDataUser] = useState<User>({
+        id: authUser.uid,
+        email: authUser.email,
+        name: "j",
+        birthday: ["09", "05", "2006"],
+        gender: "male",
+        interested_in: "women",
+        intent: "long-term-open-short"
     } as User);
 
     const [images, setImages] = useState<(File | null)[]>([null, null, null, null, null, null]);
@@ -44,34 +54,162 @@ export default function Onboarding({email, phone}: Props) {
     const [modalOpen, setModalOpen] = useState<null | "gender" | "welcome" | "intent" | "interests" | "image-edit">("welcome");
 
 
+    const [disapprovedImages, setDisapprovedImages] = useState<string[]>([])
 
-    const valid_user_setup = (): boolean => {
-        console.log(User)
+    const [isFetching, setIsFetching] = useState<boolean>(false)
+
+    const [errorHandler, setErrorHandler] = useState<Partial<Record<"name" | "email" | "birthday", string>>>({});
+
+    const setStoredDataUser = useDatabaseStore((state) => state.setUser)
+
+
+
+    useEffect(() => {
+        handleFormErrors("name");
+    }, [DataUser.name]);
+
+    useEffect(() => {
+        handleFormErrors("email");
+    }, [DataUser.email]);
+
+    useEffect(() => {
+        handleFormErrors("birthday");
+    }, [DataUser.birthday.join("-")]);
+
+    useEffect(() => {
+
+    }, [errorHandler]);
+    const handleFormErrors = (inputType: string) => {
+        const newErrors = { ...errorHandler };
+
+        const hasInvalidChars = (str: string, allowedRegex: RegExp) => !allowedRegex.test(str);
+
+        if (inputType === "name") {
+            const name = DataUser.name.trim();
+            if (name.length < 3 || name.length > 20) {
+                newErrors.name = "Name must be 3–20 characters.";
+            } else if (hasInvalidChars(name, /^[a-zA-Z\s\-']+$/)) {
+                newErrors.name = "Name contains invalid characters.";
+            } else {
+                delete newErrors.name;
+            }
+
+        } else if (inputType === "email") {
+            const email = DataUser.email.trim();
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                newErrors.email = "Invalid email format.";
+            } else if (hasInvalidChars(email, /^[a-zA-Z0-9@._\-+]+$/)) {
+                newErrors.email = "Email contains invalid characters.";
+            } else {
+                delete newErrors.email;
+            }
+
+        } else if (inputType === "birthday") {
+
+            const [month, day, year] = DataUser.birthday.map(Number);
+
+            const birthDate = new Date(year, month - 1, day);
+            console.log(birthDate)
+            const ageDifMs = Date.now() - birthDate.getTime();
+            const age = new Date(ageDifMs).getUTCFullYear() - 1970;
+
+            console.log(age)
+
+            const isValidDate = birthDate instanceof Date && !isNaN(birthDate.getTime());
+            if (!isValidDate || age < 18 || age > 120 ) {
+                newErrors.birthday = "Invalid or underage birthday.";
+            } else {
+                delete newErrors.birthday;
+            }
+        }
+
+
+        console.log("NEw: ", newErrors)
+        setErrorHandler(newErrors);
+    };
+    const is_valid_user_setup = (): boolean => {
+
         return (
-            !!User.name &&
-            !!User.email &&
-            User.birthday.length === 3 &&
-            User.birthday.every((part) => part.trim() !== "") &&
-            !!User.gender &&
-            !!User.intent &&
-            !!User.interested_in &&
-            images.filter((img) => img !== null).length >= 2
+            !!DataUser.name &&
+            !!DataUser.email &&
+            DataUser.birthday.length === 3 &&
+            DataUser.birthday.every((part) => part.trim() !== "") &&
+            !!DataUser.gender &&
+            !!DataUser.intent &&
+            !!DataUser.interested_in &&
+            images.filter((img) => img !== null).length >= 2 &&
+            images.filter((img) => {return (img && disapprovedImages.includes(img.name))} ).length === 0
+
+
         );
     }
+
+    const handleOnboarding = async () => {
+        if(is_valid_user_setup()){
+
+            setIsFetching(true);
+
+
+            let response = await handleLogin(DataUser)
+            if (response.error){
+                return toast("Login Error: ", response.error)
+            }
+
+
+            const docIds = await save_images(images.filter((image) => image != null));
+
+            if (!docIds || docIds.length <= 0){
+                return toast(`Could not save images - Please try again.`)
+            }
+            response = await verifyImages(docIds, DataUser);
+
+
+            setIsFetching(false)
+
+            if(response.error) {
+                // handle error here and tell user to change images
+                if (response.disapprovedImages){
+                    setDisapprovedImages(response.disapprovedImages)
+
+                    toast("Images could not be validated, this could be due to it being too explicit. Please switch the ones highlighted red.")
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                }
+                console.error(response.error)
+            } else if (response.success){
+                setStoredDataUser(DataUser)
+                navigate("/app")
+            }else{
+
+                toast("Unknown Error - Please try again")
+            }
+
+
+        }
+
+
+    }
     useEffect(() => {
-        console.log("IMAGES DETECTED CHANGE")
         setCurrentImage(null)
         setCurrentImageIndex(null)
 
-        console.log(images)
     }, [images]);
 
-    const genderName = User?.gender == "male" ? "Man": User?.gender == "female" ? "Woman": "Non-Binary";
+    const genderName = DataUser?.gender == "male" ? "Man": DataUser?.gender == "female" ? "Woman": "Non-Binary";
+    if(!authUser){
+        return navigate('/login')
+    }
+
+    const isContinueDisabled = !is_valid_user_setup() || Object.keys(errorHandler).length !== 0  || isFetching;
+
     return (
 
         <div className={"   "}>
+
+            <Toaster position={"top-center"}></Toaster>
+
             {modalOpen==="gender" && <GenderModal onSave={(gender) => {
-                setUser({...User, gender: gender})
+                setDataUser({...DataUser, gender: gender})
             }}
                 onClose={() => setModalOpen(null)} />
             }
@@ -81,14 +219,14 @@ export default function Onboarding({email, phone}: Props) {
             }
             {modalOpen==="intent" && <IntentModal onSave={(intent) => {
 
-                setUser({...User, intent: intent })
+                setDataUser({...DataUser, intent: intent })
 
             }} onClose={() => {
                 setModalOpen(null)
             }}/>
             }
             {modalOpen==="interests" && <InterestsModal onSave={(interests) => {
-                setUser({...User, interests: interests})
+                setDataUser({...DataUser, interests: interests})
 
             }} onClose={() => {
                 setModalOpen(null)
@@ -132,19 +270,37 @@ export default function Onboarding({email, phone}: Props) {
                         <div className={"flex  justify-center w-full flex-col p-4 md:flex-row md:p-0  gap-8  text-white"}>
 
 
-                            <div className={"w-full h-full space-y-4 flex flex-col justify-center text-center gap-4 md:block md:text-left "}>
+                            <div className={"w-full h-full space-y-8 flex flex-col justify-center text-center gap-4 md:block md:text-left "}>
 
-                                <Input name={"First Name"} placeholder={"ex. John"} input={User.name} setInput={(input) => setUser({...User, name: input})}  />
-
-                                <Input name={"Email"} type={"email"} placeholder={"example@example.com"} input={User.email} setInput={(input) => setUser({...User, email: input})} className={"mt-4"} />
-
-
-                                <div className={"space-y-2"}>
-                                    <p className={"text-md text-white font-bold w-full"}>Birthday:</p>
-
-                                    <DateInput date={User.birthday} setDate={(date) => setUser({...User, birthday: date})} />
+                                <div>
+                                    <Input name={"First Name"} placeholder={"ex. John"} input={DataUser.name} setInput={(input) => {
+                                        setDataUser({...DataUser, name: input})
+                                    }}  />
+                                    {errorHandler.name && <p className={"absolute text-red-700 text-bold mt-2"}>{errorHandler.name}</p>}
 
                                 </div>
+
+                                <div>
+                                    <Input name={"Email"} disabled={authUser.email != null} type={"email"} placeholder={"example@example.com"} input={DataUser.email} setInput={(input) => {
+                                        setDataUser({...DataUser, email: input})
+                                    }} className={"mt-4"} />
+                                    {errorHandler.email && <p className={"absolute text-red-700 text-bold mt-2"}>{errorHandler.email}</p>}
+
+                                </div>
+
+
+                                <div className={"w-full flex justify-center"}>
+                                    <div className={"space-y-2"}>
+                                        <p className={"text-md text-white font-bold w-full"}>Birthday:</p>
+
+                                        <DateInput date={DataUser.birthday} setDate={(date) => {
+                                            setDataUser({...DataUser, birthday: date})
+                                        }} />
+
+                                    </div>
+                                    {errorHandler.birthday && <p className={"absolute text-red-700 text-bold mt-28"}>{errorHandler.birthday}</p>}
+                                </div>
+
 
                                 <div className={"space-y-2 "}>
                                     <p className={"text-md text-white font-bold"}>Gender:</p>
@@ -153,10 +309,10 @@ export default function Onboarding({email, phone}: Props) {
                                         setModalOpen("gender")
                                     }} className={"inline-block "}>
                                         <div className={"flex flex-row gap-2 items-center"}>
-                                            {User.gender ? <Pencil className={"w-4 h-4 text-white"}/> :  <Plus className={"w-4 h-4 text-white"}/>}
+                                            {DataUser.gender ? <Pencil className={"w-4 h-4 text-white"}/> :  <Plus className={"w-4 h-4 text-white"}/>}
 
-                                            <p className={"text-sm"}> {User.gender === null ? "Add":"Edit"} Gender</p>
-                                            {User.gender !== null && (
+                                            <p className={"text-sm"}> {DataUser.gender === null ? "Add":"Edit"} Gender</p>
+                                            {DataUser.gender !== null && (
                                                 <div className={"flex flex-row gap-2 items-center"}>
                                                     <ChevronRight className={"w-4 h-4 text-white"}></ChevronRight>
                                                     <p>{genderName}</p>
@@ -174,28 +330,28 @@ export default function Onboarding({email, phone}: Props) {
 
                                         <Button
                                             className={"w-full h-full text-center"}
-                                            isSelected={User.interested_in == "men"}
+                                            isSelected={DataUser.interested_in == "men"}
                                             onClick={() => {
-                                                setUser({...User, interested_in: "men"})
+                                                setDataUser({...DataUser, interested_in: "men"})
                                             }}>
                                             <p className={"text-lg font-bold text-white"}>Men</p>
                                         </Button>
                                         <Button
                                             className={"w-full h-full text-center"}
-                                            isSelected={User.interested_in === "women"}
+                                            isSelected={DataUser.interested_in === "women"}
 
                                             onClick={() => {
-                                                setUser({...User, interested_in: "women"})
+                                                setDataUser({...DataUser, interested_in: "women"})
                                             }}>
                                             <p className={"text-lg font-bold text-white"}>Women</p>
 
                                         </Button>
                                         <Button
                                             className={"w-full h-full text-center"}
-                                            isSelected={User.interested_in == "everyone"}
+                                            isSelected={DataUser.interested_in == "everyone"}
 
                                             onClick={() => {
-                                                setUser({...User, interested_in: "everyone"})
+                                                setDataUser({...DataUser, interested_in: "everyone"})
                                             }}>
                                             <p className={"text-lg font-bold text-white"}>Everyone</p>
                                         </Button>
@@ -209,9 +365,9 @@ export default function Onboarding({email, phone}: Props) {
                                         setModalOpen("intent")
                                     }} className={"inline-block "}>
                                         <div className={"flex flex-row gap-2 items-center"}>
-                                            {User.intent ? <Pencil className={"w-4 h-4 text-white"}/> :  <Plus className={"w-4 h-4 text-white"}/>}
+                                            {DataUser.intent ? <Pencil className={"w-4 h-4 text-white"}/> :  <Plus className={"w-4 h-4 text-white"}/>}
 
-                                            <p className={"text-sm"}> {User.intent === null ? "Add":"Edit"} Relationship Intent</p>
+                                            <p className={"text-sm"}> {DataUser.intent === null ? "Add":"Edit"} Relationship Intent</p>
 
 
                                         </div>
@@ -227,10 +383,11 @@ export default function Onboarding({email, phone}: Props) {
 
                                 <div className={"mt-4 z-0"}>
                                     <PhotoCards images={images}
+                                                disapprovedImages={disapprovedImages}
+                                                setDisapprovedImages={setDisapprovedImages}
+
                                                 onDelete={(index) => {
-                                                    console.log("DELETING IN ONBOARING")
                                                     setImages((prev) => {
-                                                        console.log("INDEX in onboarding:", index)
                                                         if ( index < 0 || index >= prev.length) return prev;
 
                                                         const newImages = [...prev]
@@ -240,13 +397,10 @@ export default function Onboarding({email, phone}: Props) {
                                                 }}
 
                                                 onUpload={(file, index) => {
-
-
-                                        setCurrentImageIndex(index);
-                                        setCurrentImage(file);
-                                        console.log("Set modal open!")
-                                        setModalOpen("image-edit");
-                                    }}></PhotoCards>
+                                                    setCurrentImageIndex(index);
+                                                    setCurrentImage(file);
+                                                    setModalOpen("image-edit");
+                                                }}></PhotoCards>
                                 </div>
                                 <div className={"mt-4 text-center"}>
                                     <p className={"text-md text-gray-400"}>Upload 2 photos to start. Add 4 or more to make your profile stand out.</p>
@@ -266,17 +420,17 @@ export default function Onboarding({email, phone}: Props) {
                                     setModalOpen("interests")
                                 }} className={"h-fit w-fit mx-auto md:mx-0 "}>
                                     <div className={"flex flex-row gap-2 items-center "}>
-                                        {User.interests ? <Pencil className={"w-4 h-4 text-white"}/> :  <Plus className={"w-4 h-4 text-white"}/>}
+                                        {DataUser.interests ? <Pencil className={"w-4 h-4 text-white"}/> :  <Plus className={"w-4 h-4 text-white"}/>}
 
-                                        <p className={"text-sm"}> {User.interests === null ? "Add":"Edit"} Interests</p>
+                                        <p className={"text-sm"}> {DataUser.interests === null ? "Add":"Edit"} Interests</p>
 
 
 
                                     </div>
                                 </Button>
                                 <div className={"w-3/4 mx-auto md:w-64 md:mx-0"}>
-                                    {User.interests && (
-                                        User.interests.map((interest) => (
+                                    {DataUser.interests && (
+                                        DataUser.interests.map((interest) => (
                                             <p className={"inline-block w-fit text-white px-2 py-1 m-1 border-2 rounded-3xl border-red-600 "}>
                                                 {interest}
                                             </p>
@@ -297,23 +451,20 @@ export default function Onboarding({email, phone}: Props) {
                 <div className={"w-64 mx-auto"}>
                     <Button className={"mt-32 mb-16"}
                             onClick={async () => {
-                                if(valid_user_setup()){
-
-                                    // Backend
-                                    const verified_response : boolean = await verify_user(User);
-
-                                    if(verified_response){
-                                        navigate("/app")
-                                    }
 
 
 
-                                }
+                                await handleOnboarding()
+
+
                             }}
 
 
-                            disabled={!valid_user_setup()} >
-                        <p className={"w-full text-center px-2 py-1"}> Continue </p>
+                            disabled={isContinueDisabled} >
+                        {isFetching ?
+                            <LoadingSpinner />:<p className={`w-full text-center px-2 py-1`}> Continue </p>
+
+                        }
                     </Button>
                 </div>
 

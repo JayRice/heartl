@@ -2,13 +2,13 @@ import React from 'react';
 import { Heart, MessageCircle, User, Stars, Search  } from 'lucide-react';
 
 interface Props {
-  activeTab: 'discover' | 'matches' | 'messages' | 'profile';
-  onTabChange: (tab: 'discover' | 'matches' | 'messages' | 'profile') => void;
+  activeTab: 'recs' | 'discover' | 'messages' | 'profile';
+  onTabChange: (tab: 'recs' | 'discover' | 'messages' | 'profile') => void;
 }
 
 const BottomNav: React.FC<Props> = ({ activeTab, onTabChange }) => {
   const tabs = [
-    { id: 'discover', icon: Heart, label: 'Discover' },
+    { id: 'recs', icon: Heart, label: 'Recs' },
     { id: 'matches', icon: Search, label: 'Matches' },
     {id: "premium", icon: Stars, label: 'Premium' },
     { id: 'messages', icon: MessageCircle, label: 'Messages' },
@@ -22,7 +22,7 @@ const BottomNav: React.FC<Props> = ({ activeTab, onTabChange }) => {
           <button
             key={id}
             title={label}
-            onClick={() => onTabChange(id as "discover" | "matches" | "messages" | "profile")}
+            onClick={() => onTabChange(id as 'recs' | 'discover' | 'messages' | 'profile')}
             className={`flex flex-col items-center p-2 rounded-lg transition-colors ${
               activeTab === id 
                 ? 'text-pink-500' 

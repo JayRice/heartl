@@ -5,16 +5,16 @@ interface Props {
  onChange: (file?: File ) => void;
  onDelete: (index: number) => void;
  image: File | null;
+ className?: string;
 }
 
-export default function PhotoInputCard({index, onChange, onDelete, image} : Props){
+export default function PhotoInputCard({index, onChange, onDelete, image, className=""} : Props){
     const fileRef = useRef<HTMLInputElement>(null);
     const imgRef = useRef<HTMLImageElement>(null);
     const [isFileUploaded, setIsFileUploaded] = useState(false);
     const uploadedClasses = isFileUploaded ? "cursor-grab":"cursor-pointer"
 
     useEffect(() => {
-        console.log("IMAGE: ", image)
         if(image && imgRef.current){
             imgRef.current.src = URL.createObjectURL(image)
 
@@ -26,7 +26,8 @@ export default function PhotoInputCard({index, onChange, onDelete, image} : Prop
             <div onClick={() => {
                 fileRef.current?.click()
             }}
-                 className={"w-full h-[150px] relative bg-primary border-complementary border-dashed border-4 box-border z-0 " + uploadedClasses}>
+                 title={fileRef.current?.name}
+                 className={`w-full h-[150px] relative bg-primary border-complementary border-dashed border-4 box-border z-0  ${uploadedClasses} ${className}`}>
 
                 <input
                     ref={fileRef}

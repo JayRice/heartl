@@ -1,4 +1,5 @@
-import {User} from "../data/interfaces.ts";
+import {User} from "../types/index.ts";
+
 
 
 export async function verify_user(user: User) : Promise<boolean> {
@@ -14,3 +15,4 @@ export async function verify_user(user: User) : Promise<boolean> {
 
 
 }
+

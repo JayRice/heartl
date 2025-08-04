@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, {useState, useRef, useEffect} from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Settings } from 'lucide-react';
 import Header from '../components/Layout/Header';
@@ -10,23 +10,29 @@ import { mockUsers, mockMatches, mockChats } from '../data/mockData';
 import { User, Match, Chat } from '../types';
 import { useAuth } from '../hooks/useAuth';
 
-import DiscoverTab from "../components/Tabs/DiscoverTab"
-import MatchesTab from "../components/Tabs/MatchesTab.tsx"
+import RecsTab from "../components/Tabs/RecsTab.tsx"
+import DiscoverTab from "../components/Tabs/DiscoverTab.tsx"
 import MessagesTab from "../components/Tabs/MessagesTab.tsx"
 import ProfileTab from "../components/Tabs/ProfileTab.tsx"
+import useStore from "../../store/store.ts";
+import SideNav from "../components/Elements/app/SideNav";
 
 
 
 
 
 const App: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'discover' | 'matches' | 'messages' | 'profile'>('discover');
+  const [activeTab, setActiveTab] = useState<'recs' | 'discover' | 'messages' | 'profile'>('discover');
   const [matches, setMatches] = useState<Match[]>(mockMatches);
   const [chats, setChats] = useState<Chat[]>(mockChats);
   const [showMatchNotification, setShowMatchNotification] = useState<User | null>(null);
   const [selectedChat, setSelectedChat] = useState<Chat | null>(null);
   const { logout } = useAuth();
   const navigate = useNavigate();
+
+  const isCompactMode = useStore((state) => state.isCompactMode);
+
+
 
 
 
@@ -45,20 +51,33 @@ const App: React.FC = () => {
 
 
 
+  const sideNavRef = useRef<HTMLDivElement>(null);
+
 
   return (
-    <div className="min-h-screen bg-gray-900 flex flex-col overflow-x-hidden">
+    <div className=" min-h-screen h-screen bg-primary flex flex-row overflow-x-hidden">
+
+      { (activeTab != "recs" ||  (sideNavRef.current && sideNavRef.current.clientWidth >= 1024) ) && <div ref={sideNavRef} className={"lg:w-[25%] w-full h-full "}>
+        <SideNav>
+          {activeTab === 'discover' && <DiscoverTab matches={matches} chats={chats} setChats={setChats} setActiveTab={setActiveTab} />}
+          {activeTab === 'messages' && <MessagesTab selectedChat={selectedChat} chats={chats} setSelectedChat={setSelectedChat} handleSendMessage={handleSendMessage} />}
+          {activeTab === 'profile' && <ProfileTab  handleLogout={handleLogout}/>}
+        </SideNav>
+
+      </div>}
+
+      {activeTab === 'recs' && <RecsTab />}
+
+      <div className={" lg:hidden"}>
 
 
-      {activeTab === 'discover' && <DiscoverTab />}
-      {activeTab === 'matches' && <MatchesTab matches={matches}  chats={chats} setChats={setChats} setActiveTab={setActiveTab} />}
-      {activeTab === 'messages' && <MessagesTab selectedChat={selectedChat} chats={chats} setSelectedChat={setSelectedChat} handleSendMessage={handleSendMessage} />}
-      {activeTab === 'profile' && <ProfileTab  handleLogout={handleLogout}/>}
-
-
-      <div className="lg:hidden">
-        <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />
       </div>
+
+
+
+      {!isCompactMode && <div className="lg:hidden">
+        <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />
+      </div>}
 
       {showMatchNotification && (
         <MatchNotification

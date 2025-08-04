@@ -7,6 +7,7 @@ export default function handleSwipe(dir: "left" | "right" | "up", el: HTMLElemen
     el.style.transition = 'transform 0.5s ease';
 
 
+
     if(dir === "left"){
 
         el.style.transform = `translate(-800px, 0) rotate(-45deg)`

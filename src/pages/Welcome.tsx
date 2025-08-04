@@ -2,7 +2,6 @@ import React, { useState, useEffect,useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Heart } from 'lucide-react';
 import AuthForm from '../components/Auth/AuthForm';
-import { useAuth } from '../hooks/useAuth';
 import TopNav from '../components/Layout/TopNav'
 import AutoSlider from "../components/Elements/AutoSlider.tsx"
 
@@ -13,20 +12,8 @@ const Welcome: React.FC = () => {
   const [showAuth, setShowAuth] = useState(false);
   const [authMode, setAuthMode] = useState<'login' | 'signup'>('signup');
   const navigate = useNavigate();
-  const { login, signup } = useAuth();
 
-  const handleAuth = async (email: string, password: string) => {
-    try {
-      if (authMode === 'login') {
-        await login(email, password);
-      } else {
-        await signup(email, password);
-      }
-      navigate('/app');
-    } catch (error) {
-      console.error('Auth error:', error);
-    }
-  };
+
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const slider = scrollContainerRef.current;

@@ -49,7 +49,7 @@ export default function InterestsModal({onClose, onSave} : Props) {
                     You like what you like. Now, let everyone know.
                 </p>
 
-                <div className={"h-80 hidden-scroll text-center py-10"}>
+                <div className={"h-80 text-center py-10 hidden-scroll overflow-y-auto "}>
                     {
                         interestsData.map(({id, label}) => {
 

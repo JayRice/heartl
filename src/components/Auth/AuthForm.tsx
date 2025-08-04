@@ -3,9 +3,12 @@ import { Heart, Phone, X, ChevronLeft, ChevronDown}from 'lucide-react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faFacebook } from '@fortawesome/free-brands-svg-icons';
 import {countryCodeList, countryCode} from "../../data/countryData.ts"
+import {login} from "../../database/auth";
+import {useNavigate} from "react-router-dom";
 
 const RecoverMode = () => {
     const [email, setEmail] = useState('');
+
     return (
         <div className={"space-y-8 flex flex-col items-center justify-center"}>
 
@@ -98,6 +101,8 @@ const SignInPhoneMode = () => {
 }
 const SignInMode = ({mode, onToggleMode, setAuthMode} : {mode: string, onToggleMode: () => void,
     setAuthMode: React.Dispatch<React.SetStateAction<"login" | "signup" | "recover" | "phone">>}) => {
+
+    const navigate = useNavigate()
   return (
       <div className={"space-y-8 flex flex-col items-center justify-center"}>
 
@@ -108,8 +113,9 @@ const SignInMode = ({mode, onToggleMode, setAuthMode} : {mode: string, onToggleM
 
         <div className={"mt-4 space-y-4"}>
 
-          <div  onClick={() => {
-            // Google Auth
+          <div  onClick={async() => {
+            await login("google")
+              navigate("/app/onboarding")
 
           }} className={"w-screen max-w-sm h-12 rounded-3xl bg-blue-500 hover:bg-blue-400 transition-colors flex items-center cursor-pointer"}>
             <div className={"rounded-full  bg-white  p-2 ml-1"}>
@@ -125,7 +131,6 @@ const SignInMode = ({mode, onToggleMode, setAuthMode} : {mode: string, onToggleM
           </div>
 
           <div  onClick={() => {
-            // Google Auth
 
           }} className={"w-screen max-w-sm h-12 rounded-3xl border-2 border-gray-700 bg-gray-900 hover:bg-gray-800 transition-colors flex items-center cursor-pointer"}>
             <div className={"rounded-full    p-2"}>

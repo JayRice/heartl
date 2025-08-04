@@ -1,18 +1,44 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Welcome from './pages/Welcome';
 import App from './pages/App';
 import { useAuth } from './hooks/useAuth';
 import Onboarding from "./pages/Onboarding.tsx";
+import useDatabaseStore from "../store/databaseStore.ts"
 
+import {getDataUser} from "./database/get.ts";
+
+import {User} from "../src/types/index.ts"
 
 const AppRouter: React.FC = () => {
   const userPrefersDark = localStorage.getItem('theme') === 'dark';
   if (userPrefersDark) {
     document.documentElement.classList.add('dark');
   }
-  const { user, loading } = useAuth();
-  const [isDarkMode, setIsDarkMode] = useState(userPrefersDark);
+  const { authUser, loading } = useAuth();
+
+
+  const [DataUser, setDataUser] = useState<User | null>(null);
+
+  const storedDataUser = useDatabaseStore((state) => state.user);
+  const setStoredDataUser = useDatabaseStore((state) => state.setUser)
+
+
+  useEffect(() => {
+    // if data user not already cached
+    async function getUser(){
+      if(!storedDataUser) {
+        const user = await getDataUser();
+        setStoredDataUser(user);
+        return setDataUser(user);
+      }
+      setDataUser(storedDataUser);
+    }
+    getUser();
+  }, [storedDataUser]);
+
+
+
 
 
 
@@ -29,17 +55,15 @@ const AppRouter: React.FC = () => {
       <Routes>
         <Route 
           path="/" 
-          element={user ? <Navigate to="/app" /> : <Welcome />} 
+          element={DataUser ? <App />: authUser ? <Onboarding authUser={authUser} /> : <Welcome />}
         />
         <Route
         path="/app/onboarding"
-        element={<Onboarding />}
+        element={DataUser ? <App />: authUser ? <Onboarding authUser={authUser} /> : <Welcome />}
         ></Route>
         <Route 
           path="/app"
-          element={<App /> }
-
-            // element={user ? <App /> : <Navigate to="/" />}
+          element={DataUser ? <App />: authUser ? <Onboarding authUser={authUser} /> : <Welcome />}
         />
       </Routes>
     </Router>

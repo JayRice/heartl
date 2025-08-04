@@ -24,12 +24,11 @@ img {
 }
 
 .hidden-scroll {
-    overflow: auto;
     scrollbar-width: none;     /* Firefox */
     -ms-overflow-style: none;  /* Internet Explorer 10+ */
 }
 
-.scroll-container::-webkit-scrollbar {
+.hidden-scroll::-webkit-scrollbar {
     display: none;             /* Chrome, Safari, Opera */
 }
 
@@ -50,6 +49,20 @@ img {
     height: 150px;
     background: linear-gradient(to top, rgb(0, 0, 0), transparent);
     pointer-events: none;
+}
+
+.flashing-red-border {
+    animation: flash-red-border 1s infinite;
+}
+
+
+@keyframes flash-red-border {
+    0%, 100% {
+        border-color: red;
+    }
+    50% {
+        border-color: transparent;
+    }
 }
 
 

@@ -10,6 +10,7 @@ export default function DateInput({date, setDate}: Props): JSX.Element {
     const monthRef = useRef<HTMLInputElement>(null);
     const yearRef = useRef<HTMLInputElement>(null);
 
+
     return (
 
         <div className={"max-w-md w-full flex flex-row justify-center md:justify-normal gap-2 "}>
@@ -19,11 +20,17 @@ export default function DateInput({date, setDate}: Props): JSX.Element {
                 <label>Month</label>
                 <input
                     ref={monthRef}
-                    value={date[1]}
+                    value={date[0]}
                     maxLength={2}
                     onChange={(e) => {
                         const value = e.target.value.slice(0, 2);
-                        setDate([date[0], value, date[2]]);
+                        const last = e.target.value[e.target.value.length - 1];
+
+
+                        if(last != undefined && isNaN(Number(value[e.target.value.length-1] ))){
+                            return;
+                        }
+                        setDate([value,date[1], date[2]]);
                         if (value.length === 2) {
                             dayRef.current?.focus();
                         }
@@ -38,11 +45,18 @@ export default function DateInput({date, setDate}: Props): JSX.Element {
                 <label>Day</label>
                 <input
                     ref={dayRef}
-                    value={date[0]}
+                    value={date[1]}
                     maxLength={2}
                     onChange={(e) => {
                         const value = e.target.value.slice(0, 2);
-                        setDate([value, date[1], date[2]]);
+                        const last = e.target.value[e.target.value.length - 1];
+                        if (last == undefined){
+                            monthRef.current?.focus();
+                        }
+                        if(last != undefined && isNaN(Number(value[e.target.value.length-1] ))){
+                            return;
+                        }
+                        setDate([date[0],value, date[2]]);
 
                         if (value.length === 2) {
                             yearRef.current?.focus();
@@ -64,6 +78,14 @@ export default function DateInput({date, setDate}: Props): JSX.Element {
                     maxLength={4}
                     onChange={(e) => {
                         const value = e.target.value.slice(0, 4);
+
+                        const last = e.target.value[e.target.value.length - 1];
+                        if (last == undefined){
+                            yearRef.current?.focus();
+                        }
+                        if(last != undefined && isNaN(Number(value[e.target.value.length-1] ))){
+                            return;
+                        }
                          if(value.length === 0) {
                             dayRef.current?.focus()
                         }

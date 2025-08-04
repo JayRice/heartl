@@ -2,21 +2,23 @@
 import {create} from "zustand";
 
 //import { User } from 'firebase/auth';
-import { User } from "../src/data/interfaces"
 
 
 
 type storeType = {
     isDark: boolean;
     setIsDark: () => void;
-    user: User | null,
-    setUser: (user: User) => void;
+
+
     thresholdRatio: [number, number];
     setThresholdRatio: (threshold: [number, number]) => void;
 
     // Only for testing purposes
     currentUserIndex: number;
     setCurrentUserIndex: (index: number) => void;
+
+    isCompactMode: boolean;
+    setIsCompactMode: (isCompactMode: boolean) => void;
 }
 
 const useStore = create<storeType>((set) => ({
@@ -35,10 +37,7 @@ const useStore = create<storeType>((set) => ({
 
      return {isDark: newDark};
     }),
-    user: null,
-    setUser: (user: User) => set(() => {
-        return {user: user}
-    }),
+
     thresholdRatio: [0,0],
     setThresholdRatio: (threshold: [number, number]) => set(() => {
         return {thresholdRatio: [threshold[0], threshold[1]]}
@@ -48,6 +47,11 @@ const useStore = create<storeType>((set) => ({
     currentUserIndex: 0,
     setCurrentUserIndex: (index: number) => set(() => {
         return {currentUserIndex: index}
+    }),
+
+    isCompactMode: false,
+    setIsCompactMode: (isCompactMode: boolean) => set(() => {
+        return {isCompactMode: isCompactMode}
     })
 }))
 

@@ -2,7 +2,10 @@ import MessageInput from "../Messages/MessageInput.tsx";
 import ChatList from "../Messages/ChatList.tsx";
 import { Chat } from '../../types';
 
-
+import SimpleTopNav from "../Layout/SimpleTopNav.tsx"
+import {Zap} from "lucide-react";
+import React from "react";
+import useStore from "../../../store/store.ts";
 interface Props {
     selectedChat: Chat | null;
     handleSendMessage: (message: string) => void;
@@ -10,8 +13,21 @@ interface Props {
     setSelectedChat: (chat: Chat) => void;
 }
 export default function MessagesTab({selectedChat, handleSendMessage, chats, setSelectedChat}: Props) {
+
+    const isCompactMode = useStore((state) => state.isCompactMode);
+
     return (
         <div className="flex-1 flex flex-col max-w-md mx-auto w-full">
+            { !isCompactMode &&
+                (
+                    <div className={"lg:hidden"}>
+                        <SimpleTopNav>
+                        </SimpleTopNav>
+                    </div>
+
+                )
+
+            }
             {selectedChat ? (
                 <>
                     <div className="flex-1 p-4 overflow-y-auto">

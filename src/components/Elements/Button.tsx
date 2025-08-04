@@ -4,8 +4,7 @@ import {ReactNode} from "react"
 export default function Button ({ children, onClick, isSelected=false, className="", disabled=false} : {children: ReactNode,  onClick:() => void, isSelected?: boolean, className?:string, disabled?:boolean,}) {
 
 
-    console.log(disabled)
-    const disabledClasses = " " + (disabled ? "cursor-default":"cursor-pointer hover:bg-secondary") + " "
+    const disabledClasses = " " + (disabled ? "cursor-default opacity-75":"cursor-pointer hover:bg-secondary") + " "
     const selectedClasses = " " + (isSelected ? "border-red-600 ": "border-complementary") + " "
 
     return (

@@ -17,7 +17,7 @@ export default function Input({name, placeholder, input, setInput, type="text", 
                    onChange={(e) => setInput(e.target.value)}
                 disabled={disabled}
                    type={type}
-                className={"w-full rounded-md border-[1px] border-complementary bg-black p-2 "}
+                className={`w-full rounded-md border-[1px] border-complementary bg-black p-2 ${disabled && "opacity-50"}`}
                    placeholder={placeholder}
             ></input>
 

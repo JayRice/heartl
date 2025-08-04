@@ -26,20 +26,24 @@ const SwipeActions: React.FC<SwipeActionsProps> = ({
     const swipeBias = checkSwipe()
 
     const isThresholdZero = thresholdRatio[0] == 0 && thresholdRatio[1] == 0;
+
+    const isCompactMode = useStore((state) => state.isCompactMode);
+
     return (
-    <div className="absolute w-full z-50 flex y h-full ">
+    <div className={"absolute w-full z-50 flex y h-full "}>
 
 
-        <div className={"flex items-center justify-evenly w-full"}>
-            <div
+        <div className={`flex items-center ${isCompactMode ? "justify-center lg:gap-20 gap-8":"justify-evenly"} w-full`}>
+
+            { !isCompactMode && <div
                 style={{
                     transform: `${isThresholdZero ? "scaleX(100%)":"scaleX(0%)" }`
                 }}
                 className={"lg:hidden absolute w-full p-4 transition-transform"}>
                 <div className={"w-full h-4  rounded-b-full bg-[#21252E] "}></div>
-            </div>
+            </div>}
 
-            <SwipeButton
+            { !isCompactMode && <SwipeButton
                 onClick={onUndo}
                 className="w-12 h-12 transition-transform duration-500 "
                 style={{
@@ -47,7 +51,7 @@ const SwipeActions: React.FC<SwipeActionsProps> = ({
                 }}
             >
                 <RotateCcw className=" w-full h-full text-orange-400" />
-            </SwipeButton>
+            </SwipeButton>}
 
             <SwipeButton
                 onClick={onPass}
@@ -80,7 +84,7 @@ const SwipeActions: React.FC<SwipeActionsProps> = ({
                 <Heart className={" w-full h-full text-red-600 fill-current transition-colors "+ (swipeBias=="like" ? "text-white ":"")} />
             </SwipeButton>
 
-            <SwipeButton
+            { !isCompactMode && <SwipeButton
                 onClick={onBoost}
                 style={{
                     transform: `${isThresholdZero ? "scale(100%)":"scale(0%)" }`
@@ -88,7 +92,7 @@ const SwipeActions: React.FC<SwipeActionsProps> = ({
                 className="w-14 h-14 "
             >
                 <Zap className=" w-full h-full text-purple-800 fill-current" />
-            </SwipeButton>
+            </SwipeButton>}
         </div>
 
 
