@@ -3,10 +3,13 @@ import { useEffect } from "react";
 import {SWIPE_THRESHOLD} from "../logic/constants.ts"
 
 import useStore from "../../store/store.ts"
-import {mockUsers} from "../data/mockData.ts";
+import useDatabaseStore from "../../store/databaseStore.ts"
+
+import nextUser from "../logic/nextUser.ts"
 
 
-import handleSwipe from "../logic/handleSwipe.ts"
+import animateSwipe from "../logic/animateSwipe.ts"
+
 
 import {ANIMATION_INTERVAL} from "../logic/constants.ts"
 
@@ -32,19 +35,14 @@ export const useSwipe = ( ref: React.RefObject<HTMLElement> | ((instance: HTMLEl
 
       el.style.transition = 'none';
       el.style.transform = 'translate(0, 0) rotate(0deg)';
+      el.style.touchAction = 'none';
 
 
 
       let startX = 0;
       let startY = 0;
       let isDragging = false;
-      let canDrag = true;
       const setThresholdRatio = useStore.getState().setThresholdRatio;
-
-      const nextUser = () => {
-        const currentUserIndex = useStore.getState().currentUserIndex;
-        useStore.getState().setCurrentUserIndex((currentUserIndex + 1) % mockUsers.length);
-      }
 
 
 
@@ -88,9 +86,13 @@ export const useSwipe = ( ref: React.RefObject<HTMLElement> | ((instance: HTMLEl
         // Threshold logic
         if (Math.abs(dx) > SWIPE_THRESHOLD) {
 
-          handleSwipe(dx > 0 ? 'right' : 'left', el);
+          animateSwipe(dx > 0 ? 'right' : 'left', el).then(() => {
+
+          });
         } else if (dy < -SWIPE_THRESHOLD) {
-          handleSwipe('up', el);
+          animateSwipe('up', el).then(() => {
+
+          });
         } else {
 
           el.style.transition = 'transform 0.3s ease';
@@ -103,7 +105,6 @@ export const useSwipe = ( ref: React.RefObject<HTMLElement> | ((instance: HTMLEl
 
         setTimeout(() => {
           nextUser()
-
         }, ANIMATION_INTERVAL)
 
 

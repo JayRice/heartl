@@ -9,9 +9,12 @@ export const useAuth = () => {
 
 
   useEffect(() => {
+
+
     const unsubscribe = auth.onAuthStateChanged((user) => {
       setAuthUser(user);
       setLoading(false);
+
     });
 
     return () => unsubscribe();
@@ -19,5 +22,6 @@ export const useAuth = () => {
 
 
 
-  return { authUser, loading };
+
+  return { authUser, authUserLoading: loading };
 };

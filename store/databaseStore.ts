@@ -1,13 +1,7 @@
 
 import {create} from "zustand";
 import { persist } from 'zustand/middleware'
-import { User } from "../src/data/interfaces"
-
-
-
-
-
-import {Conversation, Match} from "../src/types/index"
+import {Conversation, Match, User} from "../src/types/index"
 
 type databaseStoreType = {
     conversations: Conversation[],
@@ -15,7 +9,12 @@ type databaseStoreType = {
     matches: Match[]
     setMatches: (matches: Match[]) => void,
     user: User | null,
-    setUser: (user: User) => void;
+    setUser: (user: User | null) => void;
+    swipeBuffer: User[] | null;
+    setSwipeBuffer: (swipeBuffer: User[]) => void;
+    swipeBufferIndex: number;
+    setSwipeBufferIndex: (swipeIndex: number) => void;
+
 }
 
 
@@ -27,9 +26,13 @@ const useDatabaseStore = create<databaseStoreType>()(
             matches: [],
             setMatches: (matches: Match[]) => set({ matches }),
             user: null,
-            setUser: (user: User) => set(() => {
+            setUser: (user: User | null) => set(() => {
                 return {user: user}
             }),
+            swipeBufferIndex: 0,
+            setSwipeBufferIndex: (swipeIndex: number) => set({swipeBufferIndex: swipeIndex}),
+            swipeBuffer: null,
+            setSwipeBuffer: (swipeBuffer: User[]) => set({swipeBuffer}),
         }),
         {
             name: 'database-store', // required

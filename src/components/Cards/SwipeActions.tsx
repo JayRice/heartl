@@ -4,6 +4,8 @@ import { RotateCcw, X, Star, Heart, Zap } from 'lucide-react';
 import SwipeButton from "./SwipeButton.tsx"
 import useStore from "../../../store/store.ts";
 import checkSwipe from "../../logic/checkSwipe.ts";
+import {handleSwipeAction} from "../../server/handleSwipeAction.ts"
+
 
 interface SwipeActionsProps {
   onUndo: () => void;

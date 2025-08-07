@@ -1,6 +1,6 @@
 import {Pencil, Plus, ChevronRight} from "lucide-react"
 import {useNavigate} from "react-router-dom";
-import {useEffect, useState, useRef} from "react";
+import {useEffect, useState} from "react";
 import { User} from "../types/index.ts"
 
 import {toast, Toaster} from "react-hot-toast"
@@ -19,9 +19,12 @@ import ImageEditModal from "../components/Modals/ImageEditModal.tsx"
 
 import {handleLogin} from "../server/handleLogin.ts"
 
+import {getLocation} from "../logic/getLocation.ts";
 
 
 import {User as FirebaseUser} from "firebase/auth"
+import {auth} from "../config/firebase.ts"
+
 import verifyImages from "../server/verifyImages.ts";
 import LoadingSpinner from "../components/Elements/LoadingSpinner.tsx";
 import useDatabaseStore from "../../store/databaseStore.ts";
@@ -36,11 +39,28 @@ export default function Onboarding({authUser} : {authUser: FirebaseUser}) {
     const storedDataUser = useDatabaseStore((state) => state.user);
 
 
-    console.log("Stored User", storedDataUser)
+    const [birthdayTuple, setBirthdayTuple] = useState(["","",""])
 
     const [DataUser, setDataUser] = useState<User>({
-        ...storedDataUser
-    } as User);
+        id: authUser.uid,
+        email: authUser.email!,
+        phone: authUser.phoneNumber || "",
+
+        profile: {
+            name: "",
+            birthday: "",
+            gender: null,
+        },
+
+        preferences: {
+            interested_in: null,
+            intent: null,
+        },
+
+        relations: {
+            conversationIds: [],
+            matchIds: [],
+        }} as User);
 
     const [images, setImages] = useState<(File | null)[]>([null, null, null, null, null, null]);
     const [currentImage, setCurrentImage] = useState<File | null>(null);
@@ -63,15 +83,31 @@ export default function Onboarding({authUser} : {authUser: FirebaseUser}) {
 
     useEffect(() => {
         handleFormErrors("name");
-    }, [DataUser.name]);
+    }, [DataUser.profile.name]);
 
     useEffect(() => {
         handleFormErrors("email");
     }, [DataUser.email]);
 
     useEffect(() => {
+        const [month, day, year] = birthdayTuple;
+
+        const mm = month.padStart(2, '0');
+        const dd = day.padStart(2, '0');
+
+
+
+        const birthday = `${year}-${mm}-${dd}`;
+
+        setDataUser({
+            ...DataUser,
+            profile: {
+                ...DataUser.profile,
+                birthday: birthday
+            }
+        });
         handleFormErrors("birthday");
-    }, [DataUser.birthday.join("-")]);
+    }, [birthdayTuple]);
 
     useEffect(() => {
 
@@ -82,7 +118,7 @@ export default function Onboarding({authUser} : {authUser: FirebaseUser}) {
         const hasInvalidChars = (str: string, allowedRegex: RegExp) => !allowedRegex.test(str);
 
         if (inputType === "name") {
-            const name = DataUser.name.trim();
+            const name = DataUser.profile.name.trim();
             if (name.length < 3 || name.length > 20) {
                 newErrors.name = "Name must be 3–20 characters.";
             } else if (hasInvalidChars(name, /^[a-zA-Z\s\-']+$/)) {
@@ -108,11 +144,11 @@ export default function Onboarding({authUser} : {authUser: FirebaseUser}) {
             }
 
         } else if (inputType === "birthday") {
-            console.log("Birthday: ", DataUser.birthday);
-            if (DataUser.birthday[0] == ''){
+            console.log("Birthday: ", birthdayTuple);
+            if (birthdayTuple[0] == ''){
                 return;
             }
-            const [month, day, year] = DataUser.birthday.map(Number);
+            const [month, day, year] = birthdayTuple.map(Number);
 
 
             const birthDate = new Date(year, month - 1, day);
@@ -137,13 +173,13 @@ export default function Onboarding({authUser} : {authUser: FirebaseUser}) {
     const is_valid_user_setup = (): boolean => {
 
         return (
-            !!DataUser.name &&
+            !!DataUser.profile.name &&
             !!DataUser.email &&
-            DataUser.birthday.length === 3 &&
-            DataUser.birthday.every((part) => part.trim() !== "") &&
-            !!DataUser.gender &&
-            !!DataUser.intent &&
-            !!DataUser.interested_in &&
+            birthdayTuple.length === 3 &&
+            birthdayTuple.every((part) => part.trim() !== "") &&
+            !!DataUser.profile.gender &&
+            !!DataUser.preferences.intent &&
+            !!DataUser.preferences.interested_in &&
             images.filter((img) => img !== null).length >= 2 &&
             images.filter((img) => {return (img && disapprovedImages.includes(img.name))} ).length === 0
 
@@ -152,6 +188,18 @@ export default function Onboarding({authUser} : {authUser: FirebaseUser}) {
     }
 
     const handleOnboarding = async () => {
+
+        try {
+            const location = await getLocation();
+
+            DataUser.location = {
+                latitude: location.latitude,
+                longitude: location.longitude
+            };
+        }catch {
+            return toast.error("Could not retrieve your location. Please allow your location in your browser settings.")
+        }
+
         if(is_valid_user_setup()){
 
             setIsFetching(true);
@@ -180,9 +228,10 @@ export default function Onboarding({authUser} : {authUser: FirebaseUser}) {
                 }
                 console.error(response.error)
             } else if (response.success){
-                console.log("Success!: ", DataUser)
-                setStoredDataUser(DataUser)
-                navigate("/app")
+                setTimeout(() => {
+                    navigate("/app")
+                    toast("Successfully logged in... Welcome to Heartl!")
+                }, 1000)
             }else{
 
                 toast("Unknown Error - Please try again")
@@ -199,7 +248,7 @@ export default function Onboarding({authUser} : {authUser: FirebaseUser}) {
 
     }, [images]);
 
-    const genderName = DataUser?.gender == "male" ? "Man": DataUser?.gender == "female" ? "Woman": "Non-Binary";
+    const genderName = DataUser?.profile.gender == "male" ? "Man": DataUser?.profile.gender == "female" ? "Woman": "Non-Binary";
     if(!authUser){
         return navigate('/login')
     }
@@ -212,30 +261,45 @@ export default function Onboarding({authUser} : {authUser: FirebaseUser}) {
 
             <Toaster position={"top-center"}></Toaster>
 
-            {modalOpen==="gender" && <GenderModal onSave={(gender) => {
-                setDataUser({...DataUser, gender: gender})
-            }}
-                onClose={() => setModalOpen(null)} />
-            }
-            {modalOpen==="welcome" && <WelcomeModal  onClose={() => {
-                setModalOpen(null)
-            }}/>
-            }
-            {modalOpen==="intent" && <IntentModal onSave={(intent) => {
+            {modalOpen === "gender" && (
+            <GenderModal
+                onSave={(gender) =>
+                    setDataUser((prev) => ({
+                        ...prev,
+                        profile: { ...prev.profile, gender: gender },
+                    }))
+                }
+                onClose={() => setModalOpen(null)}
+            />
+            )}
 
-                setDataUser({...DataUser, intent: intent })
+            {modalOpen === "welcome" && (
+                <WelcomeModal onClose={() => setModalOpen(null)} />
+            )}
 
-            }} onClose={() => {
-                setModalOpen(null)
-            }}/>
-            }
-            {modalOpen==="interests" && <InterestsModal onSave={(interests) => {
-                setDataUser({...DataUser, interests: interests})
+            {modalOpen === "intent" && (
+                <IntentModal
+                    onSave={(intent) =>
+                        setDataUser((prev) => ({
+                            ...prev,
+                            preferences: { ...prev.preferences, intent: intent },
+                        }))
+                    }
+                    onClose={() => setModalOpen(null)}
+                />
+            )}
 
-            }} onClose={() => {
-                setModalOpen(null)
-            }}/>
-            }
+            {modalOpen === "interests" && (
+                <InterestsModal
+                    onSave={(interests) =>
+                        setDataUser((prev) => ({
+                            ...prev,
+                            preferences: { ...prev.preferences, interests: interests },
+                        }))
+                    }
+                    onClose={() => setModalOpen(null)}
+                />
+            )}
 
             {(modalOpen=="image-edit" && currentImage && (currentImageIndex) !== null) && <ImageEditModal image={currentImage} onClose={() => {
                 setModalOpen(null)
@@ -277,8 +341,14 @@ export default function Onboarding({authUser} : {authUser: FirebaseUser}) {
                             <div className={"w-full h-full space-y-8 flex flex-col justify-center text-center gap-4 md:block md:text-left "}>
 
                                 <div>
-                                    <Input name={"First Name"} placeholder={"ex. John"} input={DataUser.name} setInput={(input) => {
-                                        setDataUser({...DataUser, name: input})
+                                    <Input name={"First Name"} placeholder={"ex. John"} input={DataUser.profile.name} setInput={(input) => {
+                                        setDataUser({
+                                            ...DataUser,
+                                            profile: {
+                                                ...DataUser.profile,
+                                                name: input
+                                            }
+                                        });
                                     }}  />
                                     {errorHandler.name && <p className={"absolute text-red-700 text-bold mt-2"}>{errorHandler.name}</p>}
 
@@ -297,8 +367,8 @@ export default function Onboarding({authUser} : {authUser: FirebaseUser}) {
                                     <div className={"space-y-2"}>
                                         <p className={"text-md text-white font-bold w-full"}>Birthday:</p>
 
-                                        <DateInput date={DataUser.birthday} setDate={(date) => {
-                                            setDataUser({...DataUser, birthday: date})
+                                        <DateInput date={birthdayTuple} setDate={(date) => {
+                                            setBirthdayTuple(date)
                                         }} />
 
                                     </div>
@@ -313,10 +383,10 @@ export default function Onboarding({authUser} : {authUser: FirebaseUser}) {
                                         setModalOpen("gender")
                                     }} className={"inline-block "}>
                                         <div className={"flex flex-row gap-2 items-center"}>
-                                            {DataUser.gender ? <Pencil className={"w-4 h-4 text-white"}/> :  <Plus className={"w-4 h-4 text-white"}/>}
+                                            {DataUser.profile.gender ? <Pencil className={"w-4 h-4 text-white"}/> :  <Plus className={"w-4 h-4 text-white"}/>}
 
-                                            <p className={"text-sm"}> {DataUser.gender === null ? "Add":"Edit"} Gender</p>
-                                            {DataUser.gender !== null && (
+                                            <p className={"text-sm"}> {DataUser.profile.gender === null ? "Add":"Edit"} Gender</p>
+                                            {DataUser.profile.gender !== null && (
                                                 <div className={"flex flex-row gap-2 items-center"}>
                                                     <ChevronRight className={"w-4 h-4 text-white"}></ChevronRight>
                                                     <p>{genderName}</p>
@@ -334,28 +404,46 @@ export default function Onboarding({authUser} : {authUser: FirebaseUser}) {
 
                                         <Button
                                             className={"w-full h-full text-center"}
-                                            isSelected={DataUser.interested_in == "men"}
+                                            isSelected={DataUser.preferences.interested_in == "male"}
                                             onClick={() => {
-                                                setDataUser({...DataUser, interested_in: "men"})
+                                                setDataUser({
+                                                    ...DataUser,
+                                                    preferences: {
+                                                        ...DataUser.preferences,
+                                                        interested_in: "male"
+                                                    }
+                                                });
                                             }}>
                                             <p className={"text-lg font-bold text-white"}>Men</p>
                                         </Button>
                                         <Button
                                             className={"w-full h-full text-center"}
-                                            isSelected={DataUser.interested_in === "women"}
+                                            isSelected={DataUser.preferences.interested_in === "female"}
 
                                             onClick={() => {
-                                                setDataUser({...DataUser, interested_in: "women"})
+                                                setDataUser({
+                                                    ...DataUser,
+                                                    preferences: {
+                                                        ...DataUser.preferences,
+                                                        interested_in: "female"
+                                                    }
+                                                });
                                             }}>
                                             <p className={"text-lg font-bold text-white"}>Women</p>
 
                                         </Button>
                                         <Button
                                             className={"w-full h-full text-center"}
-                                            isSelected={DataUser.interested_in == "everyone"}
+                                            isSelected={DataUser.preferences.interested_in == "everyone"}
 
                                             onClick={() => {
-                                                setDataUser({...DataUser, interested_in: "everyone"})
+                                                setDataUser({
+                                                    ...DataUser,
+                                                    preferences: {
+                                                        ...DataUser.preferences,
+                                                        interested_in: "everyone"
+                                                    }
+                                                });
                                             }}>
                                             <p className={"text-lg font-bold text-white"}>Everyone</p>
                                         </Button>
@@ -369,9 +457,9 @@ export default function Onboarding({authUser} : {authUser: FirebaseUser}) {
                                         setModalOpen("intent")
                                     }} className={"inline-block "}>
                                         <div className={"flex flex-row gap-2 items-center"}>
-                                            {DataUser.intent ? <Pencil className={"w-4 h-4 text-white"}/> :  <Plus className={"w-4 h-4 text-white"}/>}
+                                            {DataUser.preferences.intent ? <Pencil className={"w-4 h-4 text-white"}/> :  <Plus className={"w-4 h-4 text-white"}/>}
 
-                                            <p className={"text-sm"}> {DataUser.intent === null ? "Add":"Edit"} Relationship Intent</p>
+                                            <p className={"text-sm"}> {DataUser.preferences.intent === null ? "Add":"Edit"} Relationship Intent</p>
 
 
                                         </div>
@@ -424,17 +512,17 @@ export default function Onboarding({authUser} : {authUser: FirebaseUser}) {
                                     setModalOpen("interests")
                                 }} className={"h-fit w-fit mx-auto md:mx-0 "}>
                                     <div className={"flex flex-row gap-2 items-center "}>
-                                        {DataUser.interests ? <Pencil className={"w-4 h-4 text-white"}/> :  <Plus className={"w-4 h-4 text-white"}/>}
+                                        {DataUser.preferences.interests ? <Pencil className={"w-4 h-4 text-white"}/> :  <Plus className={"w-4 h-4 text-white"}/>}
 
-                                        <p className={"text-sm"}> {DataUser.interests === null ? "Add":"Edit"} Interests</p>
+                                        <p className={"text-sm"}> {DataUser.preferences.interests === null ? "Add":"Edit"} Interests</p>
 
 
 
                                     </div>
                                 </Button>
                                 <div className={"w-3/4 mx-auto md:w-64 md:mx-0"}>
-                                    {DataUser.interests && (
-                                        DataUser.interests.map((interest) => (
+                                    {DataUser.preferences.interests && (
+                                        DataUser.preferences.interests.map((interest) => (
                                             <p className={"inline-block w-fit text-white px-2 py-1 m-1 border-2 rounded-3xl border-red-600 "}>
                                                 {interest}
                                             </p>

@@ -71,7 +71,7 @@ const SwipeCard = forwardRef<HTMLDivElement, Props>((props , ref) => {
               ref={ref}
               id={`swipe-card-${index}`}
               style={{ ...style }}
-              className={`group w-full flex justify-center z-[${3-index}] bg-black h-full`}
+              className={`group w-full flex justify-center z-[${3-index}]  h-full`}
               onMouseDown={(e) => {
                   if (e.defaultPrevented) return;
                   e.stopPropagation();
@@ -83,6 +83,7 @@ const SwipeCard = forwardRef<HTMLDivElement, Props>((props , ref) => {
 
               }}
               onMouseUp={(e) => {
+                  if(!user.profile || !user.profile.imageIds) {return}
                   if (e.defaultPrevented) return;
                   e.stopPropagation();
                   if (timeoutRef.current) {
@@ -97,10 +98,10 @@ const SwipeCard = forwardRef<HTMLDivElement, Props>((props , ref) => {
                   const middle = rect.left + rect.width / 2;
 
                   if (clickX <= middle) {
-                      setImageIndex((prev) => (prev <= 0 ? user.photos.length-1:prev-1) )
+                      setImageIndex((prev) => (prev <= 0 ? user.profile.imageIds.length-1:prev-1) )
 
                   }else{
-                      setImageIndex((prev) => (prev >= user.photos.length-1 ? 0 : prev+1));
+                      setImageIndex((prev) => (prev >= user.profile.imageIds.length-1 ? 0 : prev+1));
                   }
 
 
@@ -110,7 +111,7 @@ const SwipeCard = forwardRef<HTMLDivElement, Props>((props , ref) => {
 
 
               <div className={"absolute top-0 mt-2 w-full  z-20 bg-primary bg-opacity-75 rounded-lg flex flex-row p-[2px] gap-1 px-2 items-center"}>
-                  {user.photos.map((_, index) => (
+                  {user.profile.imageIds && user.profile.imageIds.map((_, index) => (
                       <div onPointerDown={(e) => {
 
                           setImageIndex(index)
@@ -177,8 +178,8 @@ const SwipeCard = forwardRef<HTMLDivElement, Props>((props , ref) => {
                   </div>
                   <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center space-x-2">
-                          <h2 className="text-2xl font-bold">{user.name}</h2>
-                          <span className="text-xl">{user.age}</span>
+                          <h2 className="text-2xl font-bold">{user.profile.name}</h2>
+                          <span className="text-xl">{user.profile.birthday}</span>
                           {user.verified && (
                               <div title={"Photo Verified"}>
                                   <Shield  className="h-5 w-5 text-blue-400 fill-current" />
@@ -188,7 +189,7 @@ const SwipeCard = forwardRef<HTMLDivElement, Props>((props , ref) => {
                       </div>
                   </div>
 
-                  {user.distance && (
+                  {user.location && (
                       <div>
                           <div className="flex items-center space-x-1 mb-2">
                               <Home className="h-4 w-4" />
@@ -196,7 +197,7 @@ const SwipeCard = forwardRef<HTMLDivElement, Props>((props , ref) => {
                           </div>
                           <div className="flex items-center space-x-1 mb-2">
                               <MapPin className="h-4 w-4" />
-                              <span className="text-sm">{user.distance} miles away</span>
+                              <span className="text-sm">{user.location.latitude} miles away</span>
                           </div>
                       </div>
 
@@ -228,8 +229,8 @@ const SwipeCard = forwardRef<HTMLDivElement, Props>((props , ref) => {
                       >
                           <div className="relative w-full h-full ">
                               <img
-                                  src={user.photos[imageIndex]}
-                                  alt={user.name}
+                                  src={user.profile.imageIds[imageIndex]}
+                                  alt={user.profile.name}
                                   className="w-full h-full object-cover inward-shadow"
                                   draggable={false}
                               />

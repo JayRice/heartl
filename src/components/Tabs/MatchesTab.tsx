@@ -12,7 +12,7 @@ interface Props {
     chats: Chat[];
     setSelectedChat: (chat: Chat) => void;
 }
-export default function MessagesTab({selectedChat, handleSendMessage, chats, setSelectedChat}: Props) {
+export default function MatchesTab({selectedChat, handleSendMessage, chats, setSelectedChat}: Props) {
 
     const isCompactMode = useStore((state) => state.isCompactMode);
 
