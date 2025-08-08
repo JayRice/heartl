@@ -6,8 +6,6 @@ import {toast, Toaster} from "react-hot-toast"
 
 import SwipeCard from "../Elements/app/SwipeCard";
 import SwipeActions from "../Cards/SwipeActions.tsx";
-import SimpleTopNav from "../Layout/SimpleTopNav.tsx"
-import {handleSwipeAction} from "../../server/handleSwipeAction.ts";
 import animateSwipe from "../../logic/animateSwipe.ts";
 import LoadingSpinner from "../Elements/LoadingSpinner.tsx";
 
@@ -20,6 +18,7 @@ import useDatabaseStore from "../../../store/databaseStore.ts";
 import {ANIMATION_INTERVAL, PAUSE_SWIPE_BUTTON_INTERVAL} from "../../logic/constants.ts"
 
 import nextUser from "../../logic/nextUser.ts";
+import Logo from "../Elements/Logo.tsx";
 
 export default function RecsTab () {
 
@@ -38,7 +37,6 @@ export default function RecsTab () {
     const user = useDatabaseStore((state) => state.user);
 
     const swipeBuffer = useDatabaseStore((state) => state.swipeBuffer);
-    const setSwipeBuffer = useDatabaseStore((state) => state.setSwipeBuffer);
 
     const isCompactMode = useStore((state) => state.isCompactMode);
     const setIsCompactMode = useStore((state) => state.setIsCompactMode);
@@ -57,20 +55,13 @@ export default function RecsTab () {
 
         setIsCompactMode(false)
 
-        handleSwipeAction(action, user, currentMatch).then((response) => {
-            if (response.error){
-                return toast.error(`Error while ${action}\`ing: ${response.error.message}. Try again later...`);
-            }
-            if (response.success){
 
-            }
 
-        })
-
-        console.log(action)
         // When swiped, add one new match to the end of the swipeBuffer, if the swipeBuffer reaches 0 because no new matches then
         // the useEffect in SwipeApp will take care of this case.
-        nextUser()
+
+
+        nextUser(action)
 
 
 
@@ -125,14 +116,14 @@ export default function RecsTab () {
 
         return (
             <div className={"relative w-full h-full  flex justify-center items-center"}>
-                {[0, 1, 2].map((delay, index) => (
+                {isLoadingMatches && [0, 1, 2].map((delay, index) => (
                     <span
                         key={index}
                         className={`absolute w-16 h-16 rounded-full bg-red-600 opacity-75 ${isLoadingMatches && "animate-pulse-expand"}`}
                         style={{ animationDelay: `${delay}s`, animationDuration: "3s" }}
                     />
                 ))}
-                <div className={" pulse-animation rounded-full w-20 h-20 overflow-hidden"}>
+                <div className={`rounded-full w-20 h-20 overflow-hidden ${isLoadingMatches &&  "pulse-animation"}`}>
                     { imageUrls ?
                         <div>
                             <img className={"w-full h-full"} src={imageUrls[0] }></img>
@@ -155,23 +146,25 @@ export default function RecsTab () {
 
             { !isCompactMode &&
                 (
-                    <div className={"lg:hidden"}>
-                        <SimpleTopNav>
-                            <div className={"absolute right-0 mt-2"}>
+                    <div className={"lg:hidden h-16 flex items-center "}>
+                            <div className={"m-2"}>
+                                <Logo classNameParent={"text-white w-full h-full"} classNameHeart={"text-red-600"}></Logo>
+                            </div>
+                            <div className={"absolute right-0"}>
+
 
                                 <div className={"mr-4 p-1 bg-gray-800 bg-opacity-50 rounded-full hover:scale-110"}>
-                                    <Zap className={"w-full h-full text-purple-900 fill-purple-900 "}></Zap>
+                                    <Zap className={"w-6 h-6 text-purple-900 fill-purple-900 "}></Zap>
 
                                 </div>
                             </div>
-                        </SimpleTopNav>
                     </div>
 
                 )
 
             }
 
-            <div className="flex-1 relative lg:max-w-lg max-w-full w-full lg:mx-auto lg:p-4is ${}   ">
+            <div className="flex-1 relative lg:max-w-lg max-w-full w-full lg:mx-auto  ${}   ">
 
 
                 {isCompactMode && (

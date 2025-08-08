@@ -2,6 +2,18 @@ type Interest = "harry-potter" | "rock-music" | "travel" | "fitness" | "anime" |
 
 export type SwipeAction = "undo" | "pass" |"superlike" |"like" |"boost";
 
+export interface Match {
+  userIds: [string, string];
+  createdAt: FirebaseFirestore.Timestamp;
+  lastMessageAt: FirebaseFirestore.Timestamp | null;
+  seenBy: {
+    [uid: string]: boolean;
+  };
+  hasConversation: boolean;
+  matchedBy?: string;
+  matchType?: "like" | "superlike" | "boost";
+}
+
 export interface User {
   // 🔐 Identification
   id: string;

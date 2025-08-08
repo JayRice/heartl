@@ -46,8 +46,6 @@ const AppRouter: React.FC = () => {
 
       if (!imageIds){return}
 
-
-
       await Promise.all(imageIds.map(async imageId => {
         const imageRef = ref(storage, `user-images/${user.id}/${imageId}`);
         const url = await getDownloadURL(imageRef);

@@ -3,9 +3,7 @@ import Logo from "../Elements/Logo"
 
 export default function SimpleTopNav({children} : {children?: ReactNode}) {
     return (
-        <div className={"relative flex w-full bg-primary h-full p-2 "}>
-            <Logo classNameParent={"h-full text-sm"} classNameHeart={"text-red-600 w-8 h-8"} classNameText={"text-red-600 text-md"}></Logo>
-
+        <div className={"absolute top-0 flex w-full bg-primary h-8 p-2 "}>
             {children}
         </div>
     )

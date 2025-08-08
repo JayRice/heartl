@@ -8,14 +8,18 @@ import useDatabaseStore from "../../store/databaseStore.ts"
 import nextUser from "../logic/nextUser.ts"
 
 
+
 import animateSwipe from "../logic/animateSwipe.ts"
 
 
 import {ANIMATION_INTERVAL, SEARCH_FOR_SWIPES_INTERVAL, SEARCH_FOR_SWIPES_TIMES} from "../logic/constants.ts"
+import {handleSwipeAction} from "../server/handleSwipeAction.ts";
+import {SwipeAction} from "../types";
 
 export const useSwipe = ( ref: React.RefObject<HTMLElement> | ((instance: HTMLElement | null) => void), compactMode?: boolean ) => {
 
-  const nextUserInterval = useRef<NodeJS.Timeout | null>(null);
+  const lastSwipeAction = useRef<SwipeAction | null>(null);
+
   useEffect(() => {
 
     if(compactMode){ return}
@@ -34,9 +38,7 @@ export const useSwipe = ( ref: React.RefObject<HTMLElement> | ((instance: HTMLEl
 
       if (!el) return;
 
-      el.style.transition = 'none';
-      el.style.transform = 'translate(0, 0) rotate(0deg)';
-      el.style.touchAction = 'none';
+
 
 
 
@@ -44,11 +46,6 @@ export const useSwipe = ( ref: React.RefObject<HTMLElement> | ((instance: HTMLEl
       let startY = 0;
       let isDragging = false;
       const setThresholdRatio = useStore.getState().setThresholdRatio;
-
-
-
-
-
 
 
 
@@ -87,30 +84,36 @@ export const useSwipe = ( ref: React.RefObject<HTMLElement> | ((instance: HTMLEl
         // Threshold logic
         if (Math.abs(dx) > SWIPE_THRESHOLD) {
 
+          lastSwipeAction.current = dx > 0 ?"like":"pass";
           animateSwipe(dx > 0 ? 'right' : 'left', el).then(() => {
 
           });
-        } else if (dy < -SWIPE_THRESHOLD) {
+        }
+        //
+        else if (dy < -SWIPE_THRESHOLD) {
+          lastSwipeAction.current = "superlike";
           animateSwipe('up', el).then(() => {
 
           });
         } else {
-
           el.style.transition = 'transform 0.3s ease';
           el.style.transform = `translate(0, 0) rotate(0deg)`;
           setTimeout(() => {
             el.style.transition = 'none';
           }, 300)
+
           return;
         }
-        const handleNextUser = async () => {
-          // Continue to try to get new matches
-          return newSwipeBuffer.length;
-        }
-        setTimeout( () => {
-           nextUser();
 
-        }, ANIMATION_INTERVAL)
+        setTimeout( async () => {
+          if (!lastSwipeAction.current) return;
+
+          await nextUser(lastSwipeAction.current);
+
+          el.style.transition = 'none';
+          el.style.transform = 'translate(0, 0) rotate(0deg)';
+          el.style.touchAction = 'none';
+        }, ANIMATION_INTERVAL);
 
 
 

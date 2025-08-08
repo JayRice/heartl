@@ -59,10 +59,12 @@ const SwipeApp: React.FC = () => {
   const prevMatchIds = useRef<string[]>([]);
 
 
+  const [isSwipeBufferInitialized, setIsSwipeBufferInitialized] = useState(false);
+
 
   useEffect(() => {
 
-    if ((swipeBuffer && swipeBuffer.length > 0)  || isLoadingMatches){return}
+    if ((swipeBuffer && swipeBuffer.length > 0)  || isLoadingMatches || !isSwipeBufferInitialized){return}
 
 
 
@@ -103,6 +105,7 @@ const SwipeApp: React.FC = () => {
     if (!swipeBuffer || swipeBuffer.length < 3){
       // fill the entire swipe buffer (length 3)
       fillSwipeBuffer("full", user ).then((response) => {
+        setIsSwipeBufferInitialized(true)
         if (response.error){
           // This means ran out of filter options, alert user
           if (response.code === "empty" && response.error){

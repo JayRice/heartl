@@ -1,12 +1,15 @@
 import {SwipeAction, User} from "../types";
 import {getAuthUser} from "../database/getAuthUser.ts";
 
-export async function handleSwipeAction(action : SwipeAction, user: User, otherUser: User) {
+export default async function handleSwipeAction(action : SwipeAction, uid: string, otherUid: string) {
     const authUser = getAuthUser();
     if(!authUser) throw new Error("Not signed in");
 
     const token = await authUser.getIdToken();
 
+
+
+    console.log("WOAHHHH");
 
     const res = await fetch(`${import.meta.env.VITE_API_URL}/api/handle_swipe_action`, {
         method: "POST",
@@ -15,8 +18,8 @@ export async function handleSwipeAction(action : SwipeAction, user: User, otherU
             "Content-Type": "application/json"
         },
         body: JSON.stringify({
-            user: user,
-            otherUser: otherUser,
+            uid: uid,
+            otherUid: otherUid,
             swipeAction: action
         })
 
