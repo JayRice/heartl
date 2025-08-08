@@ -1,5 +1,5 @@
 import {User} from "../types/index.ts";
-import {getAuthUser} from "../database/get.ts";
+import {getAuthUser} from "../database/getAuthUser.ts";
 
 export async function handleLogin(dataUser : User) {
     const authUser = getAuthUser();

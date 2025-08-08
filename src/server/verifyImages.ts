@@ -1,4 +1,4 @@
-import {getAuthUser} from "../database/get.ts";
+import {getAuthUser} from "../database/getAuthUser.ts";
 import {User} from "../types/index"
 export default async function verifyImages(files: File[], user: User) {
     const authUser = getAuthUser();

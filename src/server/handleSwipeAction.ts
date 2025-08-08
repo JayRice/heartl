@@ -1,5 +1,5 @@
 import {SwipeAction, User} from "../types";
-import {getAuthUser} from "../database/get.ts";
+import {getAuthUser} from "../database/getAuthUser.ts";
 
 export async function handleSwipeAction(action : SwipeAction, user: User, otherUser: User) {
     const authUser = getAuthUser();

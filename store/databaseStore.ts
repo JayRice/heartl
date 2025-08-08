@@ -15,6 +15,7 @@ type databaseStoreType = {
     swipeBufferIndex: number;
     setSwipeBufferIndex: (swipeIndex: number) => void;
 
+
 }
 
 
@@ -33,6 +34,8 @@ const useDatabaseStore = create<databaseStoreType>()(
             setSwipeBufferIndex: (swipeIndex: number) => set({swipeBufferIndex: swipeIndex}),
             swipeBuffer: null,
             setSwipeBuffer: (swipeBuffer: User[]) => set({swipeBuffer}),
+
+
         }),
         {
             name: 'database-store', // required

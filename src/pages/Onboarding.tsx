@@ -1,6 +1,6 @@
 import {Pencil, Plus, ChevronRight} from "lucide-react"
 import {useNavigate} from "react-router-dom";
-import {useEffect, useState} from "react";
+import {useEffect, useState, useRef} from "react";
 import { User} from "../types/index.ts"
 
 import {toast, Toaster} from "react-hot-toast"
@@ -23,11 +23,12 @@ import {getLocation} from "../logic/getLocation.ts";
 
 
 import {User as FirebaseUser} from "firebase/auth"
-import {auth} from "../config/firebase.ts"
+
 
 import verifyImages from "../server/verifyImages.ts";
 import LoadingSpinner from "../components/Elements/LoadingSpinner.tsx";
 import useDatabaseStore from "../../store/databaseStore.ts";
+
 
 
 export default function Onboarding({authUser} : {authUser: FirebaseUser}) {
@@ -75,10 +76,13 @@ export default function Onboarding({authUser} : {authUser: FirebaseUser}) {
 
     const [isFetching, setIsFetching] = useState<boolean>(false)
 
+
     const [errorHandler, setErrorHandler] = useState<Partial<Record<"name" | "email" | "birthday", string>>>({});
 
     const setStoredDataUser = useDatabaseStore((state) => state.setUser)
 
+
+    const loginAttemptRef = useRef<NodeJS.Timeout | null>(null);
 
 
     useEffect(() => {
@@ -228,6 +232,7 @@ export default function Onboarding({authUser} : {authUser: FirebaseUser}) {
                 }
                 console.error(response.error)
             } else if (response.success){
+
                 setTimeout(() => {
                     navigate("/app")
                     toast("Successfully logged in... Welcome to Heartl!")
@@ -544,9 +549,17 @@ export default function Onboarding({authUser} : {authUser: FirebaseUser}) {
                     <Button className={"mt-32 mb-16"}
                             onClick={async () => {
 
+                                if (!loginAttemptRef.current){
+                                    handleOnboarding()
+                                }
+                                else if (loginAttemptRef.current) {
+                                    clearTimeout(loginAttemptRef.current);
+                                }
 
+                                loginAttemptRef.current = setTimeout(() => {
+                                    loginAttemptRef.current = null;
+                                }, 1000);
 
-                                await handleOnboarding()
 
 
                             }}

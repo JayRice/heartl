@@ -57,8 +57,20 @@ img {
 .pulse-animation{
     animation: pulse 500ms infinite alternate;
 }
+.animate-pulse-expand{
+    animation: animate-pulse-expand 1s infinite;
+}
 
-
+@keyframes  animate-pulse-expand {
+    from {
+        opacity: 75;
+        scale: 1;
+    }
+    to {
+        opacity: 0;
+        scale: 5;
+    }
+}
 @keyframes flash-red-border {
     0%, 100% {
         border-color: red;

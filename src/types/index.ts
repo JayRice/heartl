@@ -16,7 +16,6 @@ export interface User {
     sexual_orientation?: "straight" | "gay" | "lesbian" | "bisexual" | "asexual";
     bio?: string;
     imageIds?: string[];
-    imageUrls?: string[];
     verified?: boolean;
     profileComplete?: boolean;
     showMeOnDiscover?: boolean;
@@ -65,4 +64,8 @@ export interface User {
     blockedIds?: string[];
     reportedByIds?: string[];
   };
+
+  data?: {
+    signedUrls?: string[];
+  }
 }

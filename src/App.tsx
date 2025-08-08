@@ -6,12 +6,17 @@ import { useAuth } from './hooks/useAuth';
 import Onboarding from "./pages/Onboarding.tsx";
 import useDatabaseStore from "../store/databaseStore.ts"
 import { doc, onSnapshot } from "firebase/firestore";
-import {db} from "../src/config/firebase.ts"
+
+
+import {db, storage} from "../src/config/firebase.ts"
 import {getDoc} from "firebase/firestore"
+
+import { ref, getDownloadURL } from "firebase/storage";
 
 
 import {User} from "../src/types/index.ts"
 import {Heart} from "lucide-react";
+import useStore from "../store/store.ts";
 
 const AppRouter: React.FC = () => {
   const userPrefersDark = localStorage.getItem('theme') === 'dark';
@@ -26,14 +31,32 @@ const AppRouter: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
 
-  const storedDataUser = useDatabaseStore((state) => state.user)
+  const user = useDatabaseStore((state) => state.user)
+  const setUser = useDatabaseStore((state) => state.setUser)
 
-
-  const setStoredDataUser = useDatabaseStore((state) => state.setUser)
+  const imageUrls = useStore((state) => state.imageUrls)
+  const setImageUrls = useStore((state) => state.setImageUrls)
 
   useEffect(() => {
+    async function initUserImages(){
 
-  }, []);
+      if (!user) {return}
+      const urls: string[] = [];
+      const imageIds = user.profile.imageIds;
+
+      if (!imageIds){return}
+
+
+
+      await Promise.all(imageIds.map(async imageId => {
+        const imageRef = ref(storage, `user-images/${user.id}/${imageId}`);
+        const url = await getDownloadURL(imageRef);
+        urls.push(url);
+      }))
+      setImageUrls(urls)
+    }
+    initUserImages()
+  }, [user]);
 
   useEffect(() => {
 
@@ -42,6 +65,7 @@ const AppRouter: React.FC = () => {
 
     const userRef = doc(db, "users", authUser.uid);
 
+
     // Check if data user exists
     getDoc(userRef).then((snapshot) => {
       console.log("Exists: ", snapshot.exists())
@@ -49,24 +73,18 @@ const AppRouter: React.FC = () => {
 
       if (snapshot.exists()){
         const userData = snapshot.data() as User;
-        // const imageIds = userData.profile.imageIds;
-        //
-        //
-        // if (!imageIds || (imageIds && imageIds.length < 2)) {
-        //   return setIsLoading(true);
-        // }
-        setStoredDataUser(userData);
+        setUser(userData);
         setIsLoading(false);
       }
     })
 
     const unsubscribe = onSnapshot(userRef, (snapshot) => {
-      setStoredDataUser(null);
+      setUser(null);
       console.log("Change to user occured")
 
       if (snapshot.exists()) {
         const userData = snapshot.data() as User;
-        setStoredDataUser(userData);
+        setUser(userData);
       }
 
     });
@@ -83,6 +101,7 @@ const AppRouter: React.FC = () => {
 
 
 
+  const isValidUser = user && (user?.profile?.imageIds)
 
 
   if (isLoading || authUserLoading) {
@@ -93,22 +112,21 @@ const AppRouter: React.FC = () => {
     );
   }
 
-  console.log("stored date user: ", storedDataUser)
 
   return (
     <Router>
       <Routes>
         <Route 
           path="/" 
-          element={storedDataUser ? <SwipeApp />: authUser ? <Onboarding authUser={authUser} /> : <Welcome />}
+          element={isValidUser ? <SwipeApp />: authUser ? <Onboarding authUser={authUser} /> : <Welcome />}
         />
         <Route
         path="/app/onboarding"
-        element={storedDataUser ? <SwipeApp />: authUser ? <Onboarding authUser={authUser} /> : <Welcome />}
+        element={isValidUser ? <SwipeApp />: authUser ? <Onboarding authUser={authUser} /> : <Welcome />}
         ></Route>
         <Route 
           path="/app"
-          element={storedDataUser ? <SwipeApp />: authUser ? <Onboarding authUser={authUser} /> : <Welcome />}
+          element={isValidUser ? <SwipeApp />: authUser ? <Onboarding authUser={authUser} /> : <Welcome />}
         />
       </Routes>
     </Router>

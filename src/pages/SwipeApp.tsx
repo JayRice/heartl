@@ -19,6 +19,8 @@ import SideNav from "../components/Elements/app/SideNav";
 import useDatabaseStore from "../../store/databaseStore.ts"
 import {toast, Toaster} from "react-hot-toast";
 import fillSwipeBuffer from "../server/fillSwipeBuffer.ts";
+import {SEARCH_FOR_SWIPES_INTERVAL, SEARCH_FOR_SWIPES_TIMES} from "../logic/constants.ts";
+import nextUser from "../logic/nextUser.ts";
 
 
 
@@ -41,12 +43,12 @@ const SwipeApp: React.FC = () => {
 
   const isCompactMode = useStore((state) => state.isCompactMode);
 
-
   const [pageFlowMode, setPageFlowMode] = useState<"desktop" | "mobile">(window.innerWidth >= 1024 ? "desktop" : "mobile");
 
 
-  const swipeBufferIndex = useDatabaseStore((state) => state.swipeBufferIndex);
-  const setSwipeBufferIndex = useDatabaseStore((state) => state.setSwipeBufferIndex);
+  const isLoadingMatches = useStore((state) => state.isLoadingMatches );
+  const setIsLoadingMatches = useStore((state) => state.setIsLoadingMatches );
+
 
   const swipeBuffer = useDatabaseStore((state) => state.swipeBuffer);
   const setSwipeBuffer = useDatabaseStore((state) => state.setSwipeBuffer);
@@ -55,6 +57,41 @@ const SwipeApp: React.FC = () => {
 
 
   const prevMatchIds = useRef<string[]>([]);
+
+
+
+  useEffect(() => {
+
+    if ((swipeBuffer && swipeBuffer.length > 0)  || isLoadingMatches){return}
+
+
+
+    setIsLoadingMatches(true);
+
+    async function retrySearchMatches(){
+
+      for (let retries = 0; retries < SEARCH_FOR_SWIPES_TIMES; retries++){
+        // wait
+        await new Promise((resolve) => setTimeout(resolve, SEARCH_FOR_SWIPES_INTERVAL));
+
+        console.log(`Rechecking matches (${retries})`)
+        const newSwipeBuffer = await nextUser();
+        // if a match was found
+        if(newSwipeBuffer.length !== 0) {
+          setIsLoadingMatches(false);
+          break;
+        }
+      }
+      setIsLoadingMatches(false);
+      // Alert the user to change their filter settings, or in future change it for them like tinder.
+      toast.error("Couldn't find anymore matches in your area. Change your filter settings")
+    }
+    retrySearchMatches()
+
+  }, [swipeBuffer])
+
+
+
 
   // Handle swipe when first loading the Swipe app /app
   useEffect(() => {

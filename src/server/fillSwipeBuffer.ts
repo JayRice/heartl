@@ -1,5 +1,5 @@
 import {User} from "../types";
-import {getAuthUser} from "../database/get.ts";
+import {getAuthUser} from "../database/getAuthUser.ts";
 import {toast} from "react-hot-toast"
 export default async function fillSwipeBuffer(fillType: "full" | "one", user: User) {
     const authUser = getAuthUser();

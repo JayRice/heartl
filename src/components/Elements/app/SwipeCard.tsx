@@ -97,12 +97,19 @@ const SwipeCard = forwardRef<HTMLDivElement, Props>((props , ref) => {
                   const clickX = e.clientX;
                   const middle = rect.left + rect.width / 2;
 
+                  // left
                   if (clickX <= middle) {
-                      setImageIndex((prev) => (prev <= 0 ? user.profile.imageIds.length-1:prev-1) )
-
-                  }else{
-                      setImageIndex((prev) => (prev >= user.profile.imageIds.length-1 ? 0 : prev+1));
+                      setImageIndex((prev) => {
+                          const length = user?.data?.signedUrls?.length ?? 0;
+                          return prev <= 0 ? length-1:prev-1;
+                      });
                   }
+                  // right
+                  else{
+                      setImageIndex((prev) => {
+                          const length = user?.data?.signedUrls?.length ?? 0;
+                          return prev <= 0 ? length - 1 : prev - 1;
+                      });                  }
 
 
               }}
@@ -111,7 +118,7 @@ const SwipeCard = forwardRef<HTMLDivElement, Props>((props , ref) => {
 
 
               <div className={"absolute top-0 mt-2 w-full  z-20 bg-primary bg-opacity-75 rounded-lg flex flex-row p-[2px] gap-1 px-2 items-center"}>
-                  {user.profile.imageIds && user.profile.imageIds.map((_, index) => (
+                  {user?.data?.signedUrls && user?.data.signedUrls.map((_, index) => (
                       <div onPointerDown={(e) => {
 
                           setImageIndex(index)
@@ -141,16 +148,25 @@ const SwipeCard = forwardRef<HTMLDivElement, Props>((props , ref) => {
 
               <div className={"absolute lg:block hidden w-full h-full z-10 "}>
                   <div className={"hidden group-hover:flex  w-full h-full  z-10  justify-between items-center p-4"}>
+                      {/* Left Button*/}
                       <div onPointerDown={(e) => {e.stopPropagation()}}  onMouseDown={(e) => {
                           e.stopPropagation();
-                          setImageIndex((prev) => (prev <= 0 ? user.photos.length-1:prev-1) )
+                          setImageIndex((prev) => {
+                              const length = user?.data?.signedUrls?.length ?? 0;
+                              return prev <= 0 ? length-1:prev-1;
+                          });
                       }} className={"pointer-events-auto rounded-full p-1 bg-black bg-opacity-60 hover:bg-opacity-70 transition-opacity"}>
                           <ChevronLeft className={"w-6 h-6 text-white "} />
 
                       </div>
+                      {/* Right Button*/}
+
                       <div onMouseDown={(e) => {
                           e.stopPropagation();
-                          setImageIndex((prev) => (prev >= user.photos.length-1 ? 0 : prev+1));
+                          setImageIndex((prev) => {
+                              const length = user?.data?.signedUrls?.length ?? 0;
+                              return prev <= 0 ? length - 1 : prev - 1;
+                          });
                       }}  className={"pointer-events-auto rounded-full p-1 bg-black bg-opacity-60 hover:bg-opacity-70 transition-opacity"}>
                           <ChevronRight className={"w-6 h-6 text-white "} />
 
@@ -228,12 +244,13 @@ const SwipeCard = forwardRef<HTMLDivElement, Props>((props , ref) => {
                           className=" w-full h-full bg-white rounded-2xl"
                       >
                           <div className="relative w-full h-full ">
-                              <img
-                                  src={user.profile.imageIds[imageIndex]}
+                              {user.data && user.data.signedUrls && user.data.signedUrls.length > 0 ? <img
+                                  src={user.data.signedUrls[imageIndex]}
                                   alt={user.profile.name}
                                   className="w-full h-full object-cover inward-shadow"
                                   draggable={false}
-                              />
+                              /> : <LoadingSpinner />
+                              }
 
 
                               { index == 0 && (<>  {

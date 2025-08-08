@@ -2,14 +2,14 @@ import {ChevronDown, Shield, Zap} from "lucide-react"
 import  {useEffect, useRef, useState} from "react";
 import {toast, Toaster} from "react-hot-toast"
 
-import { ref, getDownloadURL } from "firebase/storage";
-import {storage} from "../../config/firebase.ts"
+
 
 import SwipeCard from "../Elements/app/SwipeCard";
 import SwipeActions from "../Cards/SwipeActions.tsx";
 import SimpleTopNav from "../Layout/SimpleTopNav.tsx"
 import {handleSwipeAction} from "../../server/handleSwipeAction.ts";
 import animateSwipe from "../../logic/animateSwipe.ts";
+import LoadingSpinner from "../Elements/LoadingSpinner.tsx";
 
 import {User, SwipeAction} from "../../types";
 
@@ -22,6 +22,8 @@ import {ANIMATION_INTERVAL, PAUSE_SWIPE_BUTTON_INTERVAL} from "../../logic/const
 import nextUser from "../../logic/nextUser.ts";
 
 export default function RecsTab () {
+
+
 
 
     const swipeCardRef = useRef<HTMLDivElement>(null);
@@ -42,6 +44,9 @@ export default function RecsTab () {
     const setIsCompactMode = useStore((state) => state.setIsCompactMode);
 
 
+    const imageUrls = useStore((state) => state.imageUrls)
+
+    const isLoadingMatches = useStore((state) => state.isLoadingMatches);
 
     const currentMatch = swipeBuffer ? swipeBuffer[0] : null;
 
@@ -113,18 +118,27 @@ export default function RecsTab () {
 
     }
 
-    if (!user) {
-        return null;
-    }
 
     const doMatchesExist = swipeBuffer && swipeBuffer.length > 0;
-    const imageUrls = user.profile.imageUrls;
-    const imageUrl = imageUrls && imageUrls.length > 0 ? imageUrls[0]:null;
-    const LoadingMatchesScreen = () => {
+
+    const LoadingMatchesScreen =  () => {
+
         return (
             <div className={"relative w-full h-full  flex justify-center items-center"}>
-                <div className={" pulse-animation rounded-full w-10 h-10"}>
-                    <img className={"w-full h-full"} src={imageUrl}></img>
+                {[0, 1, 2].map((delay, index) => (
+                    <span
+                        key={index}
+                        className={`absolute w-16 h-16 rounded-full bg-red-600 opacity-75 ${isLoadingMatches && "animate-pulse-expand"}`}
+                        style={{ animationDelay: `${delay}s`, animationDuration: "3s" }}
+                    />
+                ))}
+                <div className={" pulse-animation rounded-full w-20 h-20 overflow-hidden"}>
+                    { imageUrls ?
+                        <div>
+                            <img className={"w-full h-full"} src={imageUrls[0] }></img>
+                        </div>:
+                        <LoadingSpinner />
+                    }
                 </div>
             </div>
         )

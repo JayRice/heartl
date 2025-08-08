@@ -16,6 +16,11 @@ type storeType = {
     isCompactMode: boolean;
     setIsCompactMode: (isCompactMode: boolean) => void;
 
+    isLoadingMatches: boolean;
+    setIsLoadingMatches: (isLoadingMatches: boolean) => void;
+
+    imageUrls: string[] | null;
+    setImageUrls: (imageUrls: string[] | null) => void;
 }
 
 const useStore = create<storeType>((set) => ({
@@ -43,7 +48,14 @@ const useStore = create<storeType>((set) => ({
     isCompactMode: false,
     setIsCompactMode: (isCompactMode: boolean) => set(() => {
         return {isCompactMode: isCompactMode}
-    })
+    }),
+
+    isLoadingMatches: false,
+    setIsLoadingMatches: (isLoadingMatches: boolean) => set({isLoadingMatches}),
+
+    imageUrls: null,
+    setImageUrls: (imageUrls: string[] | null) => set({imageUrls}),
+
 }))
 
 export default useStore;

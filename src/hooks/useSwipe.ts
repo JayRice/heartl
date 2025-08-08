@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import {useEffect, useRef} from "react";
 
 import {SWIPE_THRESHOLD} from "../logic/constants.ts"
 
@@ -11,10 +11,11 @@ import nextUser from "../logic/nextUser.ts"
 import animateSwipe from "../logic/animateSwipe.ts"
 
 
-import {ANIMATION_INTERVAL} from "../logic/constants.ts"
+import {ANIMATION_INTERVAL, SEARCH_FOR_SWIPES_INTERVAL, SEARCH_FOR_SWIPES_TIMES} from "../logic/constants.ts"
 
 export const useSwipe = ( ref: React.RefObject<HTMLElement> | ((instance: HTMLElement | null) => void), compactMode?: boolean ) => {
 
+  const nextUserInterval = useRef<NodeJS.Timeout | null>(null);
   useEffect(() => {
 
     if(compactMode){ return}
@@ -102,9 +103,13 @@ export const useSwipe = ( ref: React.RefObject<HTMLElement> | ((instance: HTMLEl
           }, 300)
           return;
         }
+        const handleNextUser = async () => {
+          // Continue to try to get new matches
+          return newSwipeBuffer.length;
+        }
+        setTimeout( () => {
+           nextUser();
 
-        setTimeout(() => {
-          nextUser()
         }, ANIMATION_INTERVAL)
 
 
