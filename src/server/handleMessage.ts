@@ -8,19 +8,26 @@ export default async function handleMessage(message: Message) {
 
     const token = await authUser.getIdToken();
 
+    let res = null;
+    try {
+        res = await fetch(`${import.meta.env.VITE_API_URL}/api/handle_message`, {
+            method: "POST",
+            headers: {
+                Authorization: `Bearer ${token}`,
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                message: message,
+            })
 
-    const res = await fetch(`${import.meta.env.VITE_API_URL}/api/handle_message`, {
-        method: "POST",
-        headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-            message: message,
-        })
+        });
 
-    });
-    const json = await res.json();
+    }catch(error){
+        return {error: error};
+    }
+    const json = await res?.json();
     return json;
+
+
 
 }

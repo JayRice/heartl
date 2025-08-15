@@ -75,6 +75,25 @@ img {
     animation: animate-pulse-expand 1s infinite;
 }
 
+.fade-message {
+    display: block;
+    animation: fadeInOut 1500ms ease-in-out 5s forwards;
+    /* 3s = fade in & out duration, 5s = delay before starting */
+}
+
+
+
+
+@keyframes fadeInOut {
+    0% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 0;
+        display: none;
+    }
+}
+
 @keyframes  animate-pulse-expand {
     from {
         opacity: 75;

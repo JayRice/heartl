@@ -9,6 +9,9 @@ export interface Message {
   receiverId: string;
   content: string;
   createdAt: Date; // or Firebase Timestamp if you prefer
+  read?: boolean;
+  localKey?: string;
+  status?: "sent" | "pending" | "failed";
   type?: 'text' | 'image' | 'video' | 'system'; // optional, supports media & system messages
   mediaUrls?: string[]; // for image/video messages
 }

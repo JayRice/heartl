@@ -60,6 +60,8 @@ export default function SwipeCard({user, isCompactMode, setIsCompactMode, index,
 
 
 
+    const images : string[] = user?.data?.signedUrls ? user.data.signedUrls : user?.data?.imageUrls ? user.data.imageUrls : [];
+
   return (
       <div className={`select-none absolute overflow-hidden  lg:overflow-visible  cursor-pointer  lg:rounded-2xl shadow-2xl w-full h-full flex justify-center ${index && "z-[${3-index}]"} 
         ` + compactModeClasses }>
@@ -81,9 +83,8 @@ export default function SwipeCard({user, isCompactMode, setIsCompactMode, index,
               }}
               onMouseUp={(e) => {
 
-                  const length = user?.data?.signedUrls?.length ?  user.data.signedUrls.length:
-                      user?.data?.imageUrls?.length ?
-                      user.data.imageUrls.length : 0;
+                  const length = images.length;
+
                   if(!user.profile || !user.profile.imageIds) {return}
                   if (e.defaultPrevented) return;
                   e.stopPropagation();
@@ -115,7 +116,7 @@ export default function SwipeCard({user, isCompactMode, setIsCompactMode, index,
           >
 
               <div className={"absolute top-0 mt-2 w-full  z-20 bg-primary bg-opacity-75 rounded-lg flex flex-row p-[2px] gap-1 px-2 items-center"}>
-                  {user?.data?.signedUrls && user?.data.signedUrls.map((_, index) => (
+                  {images.map((_, index) => (
                       <div onPointerDown={(e) => {
 
                           setImageIndex(index)
@@ -149,7 +150,7 @@ export default function SwipeCard({user, isCompactMode, setIsCompactMode, index,
                       <div onPointerDown={(e) => {e.stopPropagation()}}  onMouseDown={(e) => {
                           e.stopPropagation();
                           setImageIndex((prev) => {
-                              const length = user?.data?.signedUrls?.length ?? 0;
+                              const length = images.length;
                               return prev <= 0 ? length-1:prev-1;
                           });
                       }} className={"pointer-events-auto rounded-full p-1 bg-black bg-opacity-60 hover:bg-opacity-70 transition-opacity"}>
@@ -161,7 +162,7 @@ export default function SwipeCard({user, isCompactMode, setIsCompactMode, index,
                       <div onMouseDown={(e) => {
                           e.stopPropagation();
                           setImageIndex((prev) => {
-                              const length = user?.data?.signedUrls?.length ?? 0;
+                              const length = images.length ?? 0;
                               return prev <= 0 ? length - 1 : prev - 1;
                           });
                       }}  className={"pointer-events-auto rounded-full p-1 bg-black bg-opacity-60 hover:bg-opacity-70 transition-opacity"}>
@@ -242,19 +243,13 @@ export default function SwipeCard({user, isCompactMode, setIsCompactMode, index,
                           className=" w-full h-full rounded-2xl"
                       >
                           <div className="relative w-full h-full ">
-                              {user.data?.signedUrls?.length ? <img
-                                  src={user.data.signedUrls[imageIndex]}
+                              {images && images.length ? <img
+                                  src={images[imageIndex]}
                                   alt={user.profile.name}
                                   className="w-full h-full object-cover inward-shadow"
                                   draggable={false}
 
-                              /> : user.data?.imageUrls?.length ?
-                                  <img
-                                      src={user.data.imageUrls[imageIndex]}
-                                      alt={user.profile.name}
-                                      className="w-full h-full object-cover inward-shadow"
-                                      draggable={false}
-                                  />:
+                              /> :
                                   <LoadingSpinner></LoadingSpinner>
                               }
 
