@@ -7,9 +7,14 @@ import Onboarding from "./pages/Onboarding.tsx";
 import useDatabaseStore from "../store/databaseStore.ts"
 import { doc, onSnapshot } from "firebase/firestore";
 
+import usePageFlowModeListener from "../src/hooks/UseFlowListener.ts"
+
 
 import {db, storage} from "../src/config/firebase.ts"
 import {getDoc} from "firebase/firestore"
+
+
+
 
 import { ref, getDownloadURL } from "firebase/storage";
 
@@ -19,10 +24,15 @@ import {Heart} from "lucide-react";
 import useStore from "../store/store.ts";
 
 const AppRouter: React.FC = () => {
+
+
+  usePageFlowModeListener();
+
   const userPrefersDark = localStorage.getItem('theme') === 'dark';
   if (userPrefersDark) {
     document.documentElement.classList.add('dark');
   }
+
   const { authUser, authUserLoading } = useAuth();
 
 
@@ -41,15 +51,13 @@ const AppRouter: React.FC = () => {
     async function initUserImages(){
 
       if (!user) {return}
-      const urls: string[] = [];
       const imageIds = user.profile.imageIds;
 
       if (!imageIds){return}
 
-      await Promise.all(imageIds.map(async imageId => {
+      const urls = await Promise.all(imageIds.map(async imageId => {
         const imageRef = ref(storage, `user-images/${user.id}/${imageId}`);
-        const url = await getDownloadURL(imageRef);
-        urls.push(url);
+        return await getDownloadURL(imageRef);
       }))
       setImageUrls(urls)
     }

@@ -7,6 +7,7 @@ export default {
     extend: {
       colors: {
         primary: 'rgb(0,0,0)',
+        app_primary: 'rgb(17, 20, 25)',
         secondary: 'rgb(3 7 18)',
         complementary: 'rgb(75 85 99)',
         // equivalent to Tailwind's gray-800

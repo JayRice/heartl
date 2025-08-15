@@ -1,9 +1,11 @@
 
 import {create} from "zustand";
+import {User} from "../src/types";
 
 //import { User } from 'firebase/auth';
 
 
+type PageFlowMode = "mobile" | "desktop";
 
 type storeType = {
     isDark: boolean;
@@ -21,6 +23,15 @@ type storeType = {
 
     imageUrls: string[] | null;
     setImageUrls: (imageUrls: string[] | null) => void;
+
+    swipeBuffer: User[] | null;
+    setSwipeBuffer: (
+        value: User[] | null | ((prev: User[] | null) => User[] | null)
+    ) => void;
+
+    lastMatch: User | null;
+    setLastMatch: (lastMatch: User | null) => void;
+
 }
 
 const useStore = create<storeType>((set) => ({
@@ -56,6 +67,18 @@ const useStore = create<storeType>((set) => ({
     imageUrls: null,
     setImageUrls: (imageUrls: string[] | null) => set({imageUrls}),
 
+    swipeBuffer: null,
+    setSwipeBuffer: (value) =>
+        set((state) => ({
+            swipeBuffer:
+                typeof value === "function"
+                    ? (value as (p: User[] | null) => User[] | null)(state.swipeBuffer)
+                    : value,
+        })),
+
+
+    lastMatch: null,
+    setLastMatch: (lastMatch: User | null) => set({lastMatch}),
 }))
 
 export default useStore;

@@ -51,6 +51,20 @@ img {
     pointer-events: none;
 }
 
+.small-inset-fade-bottom {
+    position: absolute;
+}
+.small-inset-fade-bottom::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 100px;
+    background: linear-gradient(to top, rgb(0, 0, 0), transparent);
+    pointer-events: none;
+}
+
 .flashing-red-border {
     animation: flash-red-border 1s infinite;
 }

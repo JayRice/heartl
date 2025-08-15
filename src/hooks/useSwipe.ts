@@ -1,28 +1,19 @@
 import {useEffect, useRef} from "react";
 
-import {SWIPE_THRESHOLD} from "../logic/constants.ts"
+import {SWIPE_THRESHOLD,ANIMATION_INTERVAL} from "../logic/constants.ts"
 
 import useStore from "../../store/store.ts"
-import useDatabaseStore from "../../store/databaseStore.ts"
 
-import nextUser from "../logic/nextUser.ts"
-
-
-
-import animateSwipe from "../logic/animateSwipe.ts"
-
-
-import {ANIMATION_INTERVAL, SEARCH_FOR_SWIPES_INTERVAL, SEARCH_FOR_SWIPES_TIMES} from "../logic/constants.ts"
-import {handleSwipeAction} from "../server/handleSwipeAction.ts";
 import {SwipeAction} from "../types";
 
-export const useSwipe = ( ref: React.RefObject<HTMLElement> | ((instance: HTMLElement | null) => void), compactMode?: boolean ) => {
+export const useSwipe = ( ref: React.RefObject<HTMLDivElement> , onSwipe: (dir: "left" | "right" | "up" ) => void, compactMode?: boolean ) => {
 
-  const lastSwipeAction = useRef<SwipeAction | null>(null);
 
   useEffect(() => {
 
     if(compactMode){ return}
+
+
 
     const frame = requestAnimationFrame(() => {
 
@@ -37,6 +28,9 @@ export const useSwipe = ( ref: React.RefObject<HTMLElement> | ((instance: HTMLEl
       ///////////////////////////////////////////////////////
 
       if (!el) return;
+
+
+
 
 
 
@@ -84,17 +78,12 @@ export const useSwipe = ( ref: React.RefObject<HTMLElement> | ((instance: HTMLEl
         // Threshold logic
         if (Math.abs(dx) > SWIPE_THRESHOLD) {
 
-          lastSwipeAction.current = dx > 0 ?"like":"pass";
-          animateSwipe(dx > 0 ? 'right' : 'left', el).then(() => {
-
-          });
+          if (ref.current)
+          onSwipe(dx > 0 ? "right":"left")
         }
-        //
         else if (dy < -SWIPE_THRESHOLD) {
-          lastSwipeAction.current = "superlike";
-          animateSwipe('up', el).then(() => {
-
-          });
+          if (ref.current)
+            onSwipe( "up")
         } else {
           el.style.transition = 'transform 0.3s ease';
           el.style.transform = `translate(0, 0) rotate(0deg)`;
@@ -104,16 +93,6 @@ export const useSwipe = ( ref: React.RefObject<HTMLElement> | ((instance: HTMLEl
 
           return;
         }
-
-        setTimeout( async () => {
-          if (!lastSwipeAction.current) return;
-
-          await nextUser(lastSwipeAction.current);
-
-          el.style.transition = 'none';
-          el.style.transform = 'translate(0, 0) rotate(0deg)';
-          el.style.touchAction = 'none';
-        }, ANIMATION_INTERVAL);
 
 
 

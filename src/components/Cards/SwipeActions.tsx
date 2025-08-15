@@ -13,6 +13,7 @@ interface SwipeActionsProps {
   onSuperLike: () => void;
   onLike: () => void;
   onBoost: () => void;
+  disabled?: boolean;
 }
 
 const SwipeActions: React.FC<SwipeActionsProps> = ({
@@ -20,7 +21,8 @@ const SwipeActions: React.FC<SwipeActionsProps> = ({
   onPass,
   onSuperLike,
   onLike,
-  onBoost
+  onBoost,
+  disabled,
 }) => {
 
     const thresholdRatio = useStore((state) => state.thresholdRatio);
@@ -32,7 +34,7 @@ const SwipeActions: React.FC<SwipeActionsProps> = ({
     const isCompactMode = useStore((state) => state.isCompactMode);
 
     return (
-    <div className={"absolute w-full z-50 flex y h-full "}>
+    <div className={"absolute w-full z-50 flex   "}>
 
 
         <div className={`flex items-center ${isCompactMode ? "justify-center lg:gap-20 gap-8":"justify-evenly"} w-full`}>
@@ -41,21 +43,23 @@ const SwipeActions: React.FC<SwipeActionsProps> = ({
                 style={{
                     transform: `${isThresholdZero ? "scaleX(100%)":"scaleX(0%)" }`
                 }}
-                className={"lg:hidden absolute w-full p-4 transition-transform"}>
-                <div className={"w-full h-4  rounded-b-full bg-[#21252E] "}></div>
+                className={"absolute w-full p-4 transition-transform"}>
+                <div className={"w-full h-4  rounded-b-full bg-[#21252E]"}></div>
             </div>}
 
             { !isCompactMode && <SwipeButton
+                disabled={disabled}
                 onClick={onUndo}
                 className="w-12 h-12 transition-transform duration-500 "
                 style={{
-                    transform: `${isThresholdZero ? "scale(100%)":"scale(0%)" }`
+                    transform: `${isThresholdZero ? "scale(100%)":"scale(0%)" }`,
                 }}
             >
                 <RotateCcw className=" w-full h-full text-orange-400" />
             </SwipeButton>}
 
             <SwipeButton
+                disabled={disabled}
                 onClick={onPass}
                 style={{
                     transform: `${isThresholdZero || swipeBias=="dislike" ? "scale(100%)":"scale(0%)" }`
@@ -66,6 +70,7 @@ const SwipeActions: React.FC<SwipeActionsProps> = ({
             </SwipeButton>
 
             <SwipeButton
+                disabled={disabled}
                 onClick={onSuperLike}
 
                 style={{
@@ -77,6 +82,7 @@ const SwipeActions: React.FC<SwipeActionsProps> = ({
             </SwipeButton>
 
             <SwipeButton
+                disabled={disabled}
                 onClick={onLike}
                 style={{
                     transform: `${isThresholdZero || swipeBias=="like" ? "scale(100%)":"scale(0%)" }`
@@ -87,6 +93,7 @@ const SwipeActions: React.FC<SwipeActionsProps> = ({
             </SwipeButton>
 
             { !isCompactMode && <SwipeButton
+                disabled={disabled}
                 onClick={onBoost}
                 style={{
                     transform: `${isThresholdZero ? "scale(100%)":"scale(0%)" }`

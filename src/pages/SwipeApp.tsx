@@ -5,7 +5,6 @@ import BottomNav from '../../src/components/Elements/app/BottomNav.tsx';
 
 
 import MatchNotification from '../components/Notifications/MatchNotification';
-import { mockUsers, mockMatches, mockChats } from '../data/mockData';
 import { User, Match, Chat } from '../types';
 import { useAuth } from '../hooks/useAuth';
 
@@ -21,6 +20,12 @@ import {toast, Toaster} from "react-hot-toast";
 import fillSwipeBuffer from "../server/fillSwipeBuffer.ts";
 import {SEARCH_FOR_SWIPES_INTERVAL, SEARCH_FOR_SWIPES_TIMES} from "../logic/constants.ts";
 import nextUser from "../logic/nextUser.ts";
+import useUIStore from "../../store/UIStore.ts";
+
+import {db, storage} from "../config/firebase.ts";
+import getMatches from "../database/getMatches.ts";
+import {getDownloadURL, ref} from "firebase/storage";
+import getConversations from "../database/getConversations.ts";
 
 
 
@@ -29,83 +34,108 @@ import nextUser from "../logic/nextUser.ts";
 const SwipeApp: React.FC = () => {
 
 
-  const [activeTab, setActiveTab] = useState<'recs' | 'matches' | 'discover' | 'messages' | 'profile'>('discover');
+  const [activeTab, setActiveTab] = useState<'recs' | 'matches' | 'discover' | 'messages' | 'profile'>('matches');
 
-  const storedDataUser = useDatabaseStore((state) => state.user);
 
-  const [matches, setMatches] = useState<Match[]>(mockMatches);
-  const [chats, setChats] = useState<Chat[]>(mockChats);
+
+  const matches=  useDatabaseStore((state) => state.matches);
+  const setMatches=  useDatabaseStore((state) => state.setMatches);
+
+  const conversations = useDatabaseStore((state) => state.conversations);
+  const setConversations = useDatabaseStore((state) => state.setConversations);
 
   const [showMatchNotification, setShowMatchNotification] = useState<User | null>(null);
   const [selectedChat, setSelectedChat] = useState<Chat | null>(null);
-  const { logout } = useAuth();
+
   const navigate = useNavigate();
 
-  const isCompactMode = useStore((state) => state.isCompactMode);
+  const pageFlowMode = useUIStore((state) => state.pageFlowMode);
+  const setPageFlowMode = useUIStore((state) => state.setPageFlowMode);
 
-  const [pageFlowMode, setPageFlowMode] = useState<"desktop" | "mobile">(window.innerWidth >= 1024 ? "desktop" : "mobile");
-
-
-  const isLoadingMatches = useStore((state) => state.isLoadingMatches );
-  const setIsLoadingMatches = useStore((state) => state.setIsLoadingMatches );
-
-
-  const swipeBuffer = useDatabaseStore((state) => state.swipeBuffer);
-  const setSwipeBuffer = useDatabaseStore((state) => state.setSwipeBuffer);
+  const swipeBuffer = useStore((state) => state.swipeBuffer);
+  const setSwipeBuffer = useStore((state) => state.setSwipeBuffer);
 
   const user = useDatabaseStore((state) => state.user);
 
-
   const prevMatchIds = useRef<string[]>([]);
 
-
-  const [isSwipeBufferInitialized, setIsSwipeBufferInitialized] = useState(false);
-
-
-  useEffect(() => {
-
-    if ((swipeBuffer && swipeBuffer.length > 0)  || isLoadingMatches || !isSwipeBufferInitialized){return}
-
-
-
-    setIsLoadingMatches(true);
-
-    async function retrySearchMatches(){
-
-      for (let retries = 0; retries < SEARCH_FOR_SWIPES_TIMES; retries++){
-        // wait
-        await new Promise((resolve) => setTimeout(resolve, SEARCH_FOR_SWIPES_INTERVAL));
-
-        console.log(`Rechecking matches (${retries})`)
-        const newSwipeBuffer = await nextUser();
-        // if a match was found
-        if(newSwipeBuffer.length !== 0) {
-          setIsLoadingMatches(false);
-          break;
-        }
-      }
-      setIsLoadingMatches(false);
-      // Alert the user to change their filter settings, or in future change it for them like tinder.
-      toast.error("Couldn't find anymore matches in your area. Change your filter settings")
-    }
-    retrySearchMatches()
-
-  }, [swipeBuffer])
 
 
 
 
   // Handle swipe when first loading the Swipe app /app
+
+
+  const hasRunRef = useRef(false);
+
+  function arraysEqual(a: string[], b: string[]) {
+    if (a.length !== b.length) return false;
+    return a.every((val, idx) => val === b[idx]);
+  }
   useEffect(() => {
 
+    if (!user) {return}
+
+    getConversations().then((conversations) => {
+      console.log("Conversations: ", conversations);
+      setConversations(conversations);
+    })
+
+    // Check if matches already cached and nothing has changed
+    if ( user.activity?.matchIds) {
+      const matchIds = user.activity.matchIds;
+      const cachedIds = matches.map((u) => u.id);
+
+
+
+      if (arraysEqual(matchIds, cachedIds)) {
+        console.log("Matches found are already cached")
+        return;
+      }
+
+      // Get matches
+      getMatches(matchIds).then(async (matchedUsers : User[]) => {
+        if (!matchedUsers) {return}
+        let newMatchedUsers = await Promise.all(matchedUsers.map(async (user) => {
+          const imageIds = user.profile.imageIds;
+
+          if (!imageIds){return null}
+
+          const urls = await Promise.all(
+              imageIds.map((id) => {
+                const imageRef = ref(storage, `user-images/${user.id}/${id}`);
+                return getDownloadURL(imageRef); // return, don't push
+              })
+          );
+
+          user.data = {
+            imageUrls: urls,
+          }
+          return user;
+        }))
+        newMatchedUsers = newMatchedUsers.filter((user) => user !== null)
+
+        setMatches(newMatchedUsers as User[]);
+      });
+    }
+
+
+
+
+
+
+
+  }, [user]);
+  useEffect(() => {
+    if (hasRunRef.current) return; // skip second run in dev
+    hasRunRef.current = true;
     if (!user) {toast.error("Not Logged in."); return}
 
 
-    // When first swiping
+    // When first swiping, fill swipe buffer
     if (!swipeBuffer || swipeBuffer.length < 3){
       // fill the entire swipe buffer (length 3)
       fillSwipeBuffer("full", user ).then((response) => {
-        setIsSwipeBufferInitialized(true)
         if (response.error){
           // This means ran out of filter options, alert user
           if (response.code === "empty" && response.error){
@@ -141,7 +171,7 @@ const SwipeApp: React.FC = () => {
   // }, [storedDataUser?.relations.matchIds]);
 
   const handleLogout = async () => {
-    await logout();
+    // await logout();
     navigate('/');
   };
 
@@ -168,20 +198,20 @@ const SwipeApp: React.FC = () => {
 
 
   return (
-    <div className=" min-h-screen h-screen bg-primary flex flex-row overflow-x-hidden">
+    <div className=" min-h-screen h-screen bg-primary flex flex-row overflow-x-hidden overflow-y-hidden">
       <Toaster position={"top-center"}></Toaster>
 
-      <div ref={sideNavRef} className={`h-full ${pageFlowMode == "desktop" ? "w-[25%]":"w-full"} 
+      <div ref={sideNavRef} className={`h-full ${pageFlowMode == "desktop" ? "w-[25vw]":"w-full"} 
       ${pageFlowMode == "mobile" && activeTab == "recs" && "hidden"} `}>
         <SideNav>
           {activeTab === 'discover' && <ExploreTab  />}
-          {activeTab === 'messages' && <MatchesTab  />}
+          { (activeTab === 'messages' || activeTab === "matches") && <MatchesTab  />}
           {activeTab === 'profile' && <ProfileTab  handleLogout={handleLogout}/>}
         </SideNav>
 
       </div>
 
-      {activeTab === 'recs' && <RecsTab />}
+      {(pageFlowMode == "desktop" || activeTab == "recs") && <RecsTab />}
 
       <div className={" lg:hidden"}>
 

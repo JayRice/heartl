@@ -3,7 +3,13 @@ import {ANIMATION_INTERVAL} from "./constants.ts";
 
 export default async function animateSwipe(dir: "left" | "right" | "up" , el: HTMLElement) {
 
-    el.style.transition = 'transform 0.5s ease';
+    console.log("Animating: ", dir)
+    if (ANIMATION_INTERVAL < 1000){
+        el.style.transition = `transform 0.${ANIMATION_INTERVAL}s ease`;
+    }else {
+        el.style.transition = `transform ${ANIMATION_INTERVAL/1000}s ease`;
+
+    }
 
 
 
@@ -21,8 +27,7 @@ export default async function animateSwipe(dir: "left" | "right" | "up" , el: HT
         setTimeout(() => {
 
             // PUT SERVER FUNC HERE
-            el.style.transition = 'none';
-            el.style.transform = `translate(0px, 0px)`
+            el.style.transition = "none"
 
             return resolve(true);
 

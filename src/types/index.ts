@@ -2,16 +2,29 @@ type Interest = "harry-potter" | "rock-music" | "travel" | "fitness" | "anime" |
 
 export type SwipeAction = "undo" | "pass" |"superlike" |"like" |"boost";
 
+
+export interface Message {
+  id: string;
+  senderId: string;
+  receiverId: string;
+  content: string;
+  createdAt: Date; // or Firebase Timestamp if you prefer
+  type?: 'text' | 'image' | 'video' | 'system'; // optional, supports media & system messages
+  mediaUrls?: string[]; // for image/video messages
+}
+
+export interface Conversation {
+  id: string; // Firestore doc ID
+  participantIds: [string,string]; // array of user IDs
+  lastMessage?: string; // preview text
+  updatedAt: Date; // or Firebase Timestamp
+  createdAt: Date; // or Firebase Timestamp
+}
+
 export interface Match {
-  userIds: [string, string];
-  createdAt: FirebaseFirestore.Timestamp;
-  lastMessageAt: FirebaseFirestore.Timestamp | null;
-  seenBy: {
-    [uid: string]: boolean;
-  };
-  hasConversation: boolean;
-  matchedBy?: string;
-  matchType?: "like" | "superlike" | "boost";
+  user1Id: string;
+  user2Id: string;
+  createdAt: Date;
 }
 
 export interface User {
@@ -66,7 +79,6 @@ export interface User {
   // 🔗 Relationships
   relations: {
     conversationIds: string[];
-    matchIds: string[];
   };
 
   // 🚫 Behavior tracking
@@ -75,9 +87,12 @@ export interface User {
     seenBeforeIds?: string[];
     blockedIds?: string[];
     reportedByIds?: string[];
+    matchIds?: string[];
+
   };
 
   data?: {
     signedUrls?: string[];
+    imageUrls?: string[];
   }
 }

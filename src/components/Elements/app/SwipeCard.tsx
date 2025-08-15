@@ -10,25 +10,24 @@ import NopeImage from "../../../images/NopeImage.png"
 import LikeImage from "../../../images/LikeImage.png"
 import SuperLikeImage from "../../../images/SuperLikeImage.png"
 import {useSwipe} from "../../../hooks/useSwipe.ts";
+import LoadingSpinner from "../LoadingSpinner.tsx";
 
 
 
 interface Props {
   user: User;
-  index: number;
+  isCompactMode: boolean;
+  setIsCompactMode?: (isCompactMode: boolean) => void;
+  index?: number;
+  onSwipe?: (element: HTMLDivElement | null, dir: "left" | "right" | "up", cardId: string) => void;
+  registerCardRef?: (id: string, ref: React.RefObject<HTMLDivElement>) => void;
   style?: React.CSSProperties;
-
 }
 
 
-const SwipeCard = forwardRef<HTMLDivElement, Props>((props , ref) => {
+export default function SwipeCard({user, isCompactMode, setIsCompactMode, index, onSwipe, registerCardRef, style}: Props) {
 
-    const {user, index, style} = props;
     const [imageIndex, setImageIndex] = useState<number>(0);
-
-    const isCompactMode = useStore((state) => state.isCompactMode);
-    const setIsCompactMode = useStore((state) => state.setIsCompactMode);
-
 
 
 
@@ -47,31 +46,29 @@ const SwipeCard = forwardRef<HTMLDivElement, Props>((props , ref) => {
 
 
 
-  useSwipe( ref as RefObject<HTMLElement>, isCompactMode )
-
-
-
-
-
-
-
-
-
+  const ref = useRef<HTMLDivElement>(null);
     useEffect(() => {
+        if (!registerCardRef) {return };
+        registerCardRef(user.id, ref);
+        return () => registerCardRef(user.id, { current: null } as React.RefObject<HTMLDivElement>);
+    }, [user.id, registerCardRef]);
 
-    }, [imageIndex, thresholdRatio ]);
+
+  useSwipe( ref , (dir) => onSwipe ? onSwipe(ref.current, dir, user.id):null, isCompactMode )
+
+
 
 
 
   return (
-      <div className={`select-none absolute overflow-hidden lg:overflow-visible  cursor-pointer  lg:rounded-2xl shadow-2xl w-full h-full flex justify-center z-[${3-index}] 
+      <div className={`select-none absolute overflow-hidden  lg:overflow-visible  cursor-pointer  lg:rounded-2xl shadow-2xl w-full h-full flex justify-center ${index && "z-[${3-index}]"} 
         ` + compactModeClasses }>
 
           <div
               ref={ref}
               id={`swipe-card-${index}`}
               style={{ ...style }}
-              className={`group w-full flex justify-center z-[${3-index}]  h-full`}
+              className={`group w-full flex justify-center ${index && "z-[${3-index}]"} bg-black  h-full`}
               onMouseDown={(e) => {
                   if (e.defaultPrevented) return;
                   e.stopPropagation();
@@ -83,6 +80,10 @@ const SwipeCard = forwardRef<HTMLDivElement, Props>((props , ref) => {
 
               }}
               onMouseUp={(e) => {
+
+                  const length = user?.data?.signedUrls?.length ?  user.data.signedUrls.length:
+                      user?.data?.imageUrls?.length ?
+                      user.data.imageUrls.length : 0;
                   if(!user.profile || !user.profile.imageIds) {return}
                   if (e.defaultPrevented) return;
                   e.stopPropagation();
@@ -100,22 +101,18 @@ const SwipeCard = forwardRef<HTMLDivElement, Props>((props , ref) => {
                   // left
                   if (clickX <= middle) {
                       setImageIndex((prev) => {
-                          const length = user?.data?.signedUrls?.length ?? 0;
                           return prev <= 0 ? length-1:prev-1;
                       });
                   }
                   // right
                   else{
                       setImageIndex((prev) => {
-                          const length = user?.data?.signedUrls?.length ?? 0;
                           return prev <= 0 ? length - 1 : prev - 1;
                       });                  }
 
 
               }}
           >
-
-
 
               <div className={"absolute top-0 mt-2 w-full  z-20 bg-primary bg-opacity-75 rounded-lg flex flex-row p-[2px] gap-1 px-2 items-center"}>
                   {user?.data?.signedUrls && user?.data.signedUrls.map((_, index) => (
@@ -175,87 +172,96 @@ const SwipeCard = forwardRef<HTMLDivElement, Props>((props , ref) => {
               </div>
 
 
-              {/* Content */}
-              {!isCompactMode && <div className={`absolute bottom-0 left-0 right-0 p-6 text-white z-10 `}>
+              <div id={"swipe-card-content"} className={`w-full h-full flex justify-center items-center`}>
+                  {/* Content */}
+                  { (!isCompactMode && setIsCompactMode) && <div className={`absolute bottom-0 left-0 right-0 p-6 text-white z-10 `}>
 
-                  <div  onPointerDown={(e) => {
+                      <div  onPointerDown={(e) => {
 
-                      e.stopPropagation();
-                      e.preventDefault();
+                          e.stopPropagation();
+                          e.preventDefault();
 
-                      setIsCompactMode(!isCompactMode);
-                  }} onPointerUp={(e) => {
-                        e.stopPropagation();
-                        e.preventDefault();
-                  }} className={"border-[1px]  border-white m-8 absolute pointer-events-auto rounded-full p-1 bg-black bg-opacity-60 hover:scale-110 transition-opacity right-0 top-0 "}>
+                          setIsCompactMode(!isCompactMode);
+                      }} onPointerUp={(e) => {
+                          e.stopPropagation();
+                          e.preventDefault();
+                      }} className={"border-[1px]  border-white m-8 absolute pointer-events-auto rounded-full p-1 bg-black bg-opacity-60 hover:scale-110 transition-opacity right-0 top-0 "}>
 
 
-                      <ChevronUp className={"w-6 h-6 text-white"}></ChevronUp>
-                  </div>
-                  <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center space-x-2">
-                          <h2 className="text-2xl font-bold">{user.profile.name}</h2>
-                          <span className="text-xl">{user.profile.birthday}</span>
-                          {user.verified && (
-                              <div title={"Photo Verified"}>
-                                  <Shield  className="h-5 w-5 text-blue-400 fill-current" />
+                          <ChevronUp className={"w-6 h-6 text-white"}></ChevronUp>
+                      </div>
+                      <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center space-x-2">
+                              <h2 className="text-2xl font-bold">{user.profile.name}</h2>
+                              <span className="text-xl">{user.profile.birthday}</span>
+                              {user.profile.verified && (
+                                  <div title={"Photo Verified"}>
+                                      <Shield  className="h-5 w-5 text-blue-400 fill-current" />
 
+                                  </div>
+                              )}
+                          </div>
+                      </div>
+
+                      {user.location && (
+                          <div>
+                              <div className="flex items-center space-x-1 mb-2">
+                                  <Home className="h-4 w-4" />
+                                  <span className="text-sm">Lives in Memphis,TN</span>
                               </div>
-                          )}
-                      </div>
-                  </div>
-
-                  {user.location && (
-                      <div>
-                          <div className="flex items-center space-x-1 mb-2">
-                              <Home className="h-4 w-4" />
-                              <span className="text-sm">Lives in Memphis,TN</span>
+                              <div className="flex items-center space-x-1 mb-2">
+                                  <MapPin className="h-4 w-4" />
+                                  <span className="text-sm">{user.location.latitude} miles away</span>
+                              </div>
                           </div>
-                          <div className="flex items-center space-x-1 mb-2">
-                              <MapPin className="h-4 w-4" />
-                              <span className="text-sm">{user.location.latitude} miles away</span>
-                          </div>
-                      </div>
 
-                  )}
+                      )}
 
-                  {/*{user.bio && (*/}
-                  {/*    <p className="text-sm mb-3 line-clamp-2">{user.bio}</p>*/}
-                  {/*)}*/}
+                      {/*{user.bio && (*/}
+                      {/*    <p className="text-sm mb-3 line-clamp-2">{user.bio}</p>*/}
+                      {/*)}*/}
 
-                  {/*{user.interests && (*/}
-                  {/*    <div className="flex flex-wrap gap-2">*/}
-                  {/*      {user.interests.map((interest) => (*/}
-                  {/*          <span*/}
-                  {/*              key={interest}*/}
-                  {/*              className="px-2 py-1 bg-white/20 rounded-full text-xs backdrop-blur-sm"*/}
-                  {/*          >*/}
-                  {/*        {interest}*/}
-                  {/*      </span>*/}
-                  {/*      ))}*/}
-                  {/*    </div>*/}
-                  {/*)}*/}
+                      {/*{user.interests && (*/}
+                      {/*    <div className="flex flex-wrap gap-2">*/}
+                      {/*      {user.interests.map((interest) => (*/}
+                      {/*          <span*/}
+                      {/*              key={interest}*/}
+                      {/*              className="px-2 py-1 bg-white/20 rounded-full text-xs backdrop-blur-sm"*/}
+                      {/*          >*/}
+                      {/*        {interest}*/}
+                      {/*      </span>*/}
+                      {/*      ))}*/}
+                      {/*    </div>*/}
+                      {/*)}*/}
 
-              </div> }
+                  </div> }
 
-              {/* Image */ }
-              <div className={`relative  max-w-lg w-full h-full`} >
+                  {/* Image */ }
+                  <div className={`relative flex  max-w-lg w-full h-full`} >
                       <div
-                          className=" w-full h-full bg-white rounded-2xl"
+                          className=" w-full h-full rounded-2xl"
                       >
                           <div className="relative w-full h-full ">
-                              {user.data && user.data.signedUrls && user.data.signedUrls.length > 0 ? <img
+                              {user.data?.signedUrls?.length ? <img
                                   src={user.data.signedUrls[imageIndex]}
                                   alt={user.profile.name}
                                   className="w-full h-full object-cover inward-shadow"
                                   draggable={false}
-                              /> : <LoadingSpinner />
+
+                              /> : user.data?.imageUrls?.length ?
+                                  <img
+                                      src={user.data.imageUrls[imageIndex]}
+                                      alt={user.profile.name}
+                                      className="w-full h-full object-cover inward-shadow"
+                                      draggable={false}
+                                  />:
+                                  <LoadingSpinner></LoadingSpinner>
                               }
 
 
                               { index == 0 && (<>  {
                                   swipeBias == "dislike" && (
-                                      <div className={"absolute  z-20 top-0 right-0  w-80 h-auto"}>
+                                      <div className={"absolute z-20 top-0 right-0 w-80 h-auto"}>
                                           <img src={NopeImage} className={`select-none `}
                                                style={{ pointerEvents: "none", transform: "rotate(25deg)", opacity: Math.floor(Math.abs(thresholdRatio[0] * 100) ) / 100}}/>
                                       </div>
@@ -288,6 +294,13 @@ const SwipeCard = forwardRef<HTMLDivElement, Props>((props , ref) => {
                   </div>
 
 
+                  {/*{isCompactMode && <div className={`relative w-full h-[100vh] bg-black`}>*/}
+
+                  {/*</div>}*/}
+              </div>
+
+
+
 
 
 
@@ -297,6 +310,5 @@ const SwipeCard = forwardRef<HTMLDivElement, Props>((props , ref) => {
       </div>
 
   );
-});
+};
 
-export default SwipeCard;
